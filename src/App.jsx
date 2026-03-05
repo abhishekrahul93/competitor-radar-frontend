@@ -1,18 +1,6 @@
 import React, { useState, useEffect, createContext, useContext } from 'react'
 import api from './utils/api'
 
-// ============================================================
-// CONTEXT
-// ============================================================
-const AuthContext = createContext(null)
-
-function useAuth() {
-  return useContext(AuthContext)
-}
-
-// ============================================================
-// STYLES
-// ============================================================
 const theme = {
   bg: '#05050d',
   bgCard: 'rgba(255,255,255,0.02)',
@@ -93,9 +81,6 @@ const css = {
   },
 }
 
-// ============================================================
-// AUTH PAGE
-// ============================================================
 function AuthPage({ onLogin }) {
   const [mode, setMode] = useState('login')
   const [email, setEmail] = useState('')
@@ -169,9 +154,6 @@ function AuthPage({ onLogin }) {
   )
 }
 
-// ============================================================
-// SIDEBAR
-// ============================================================
 function Sidebar({ page, setPage, stats }) {
   const navItems = [
     { id: 'dashboard', icon: '◉', label: 'Dashboard' },
@@ -218,16 +200,57 @@ function Sidebar({ page, setPage, stats }) {
   )
 }
 
-// ============================================================
-// DASHBOARD
-// ============================================================
-function DashboardPage({ competitors, changes, reports, onScan, scanning }) {
+function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoadDemo, demoLoading, isNewUser }) {
   const statCards = [
     { label: 'Tracking', value: competitors.length, color: theme.accent },
     { label: 'Changes', value: changes.length, color: theme.red },
     { label: 'AI Briefs', value: reports.length, color: theme.green },
     { label: 'High Priority', value: changes.filter(c => c.significance >= 0.8).length, color: theme.amber },
   ]
+
+  if (isNewUser && competitors.length === 0) {
+    return (
+      <div>
+        <div style={{ textAlign: 'center', padding: '40px 0 20px' }}>
+          <div style={{ fontSize: 48, marginBottom: 12, filter: 'drop-shadow(0 0 20px rgba(99,102,241,0.3))' }}>🎯</div>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 8px' }}>
+            Welcome to Competitor<span style={{ color: theme.accent }}>Radar</span>
+          </h1>
+          <p style={{ color: theme.textMuted, fontSize: 14, margin: 0, maxWidth: 500, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.7 }}>
+            AI-powered competitive intelligence that monitors your competitors 24/7 and writes strategic briefs while you sleep.
+          </p>
+        </div>
+
+        <div style={{ maxWidth: 700, margin: '30px auto' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 30 }}>
+            {[
+              { step: '01', title: 'Load Demo Data', desc: 'See the product in action with real sample competitors and AI briefs', icon: '📊' },
+              { step: '02', title: 'Explore Dashboard', desc: 'Browse changes, read AI strategic briefs, and check threat levels', icon: '🔍' },
+              { step: '03', title: 'Add Your Own', desc: 'Track your real competitors and get intelligence delivered to your inbox', icon: '🚀' },
+            ].map((s, i) => (
+              <div key={i} style={{ ...css.card, textAlign: 'center', padding: 20, position: 'relative' }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: theme.accent, letterSpacing: 2, fontFamily: theme.mono, marginBottom: 8 }}>STEP {s.step}</div>
+                <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
+                <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{s.title}</div>
+                <div style={{ fontSize: 12, color: theme.textMuted, lineHeight: 1.6 }}>{s.desc}</div>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ ...css.card, textAlign: 'center', padding: 30, borderColor: 'rgba(99,102,241,0.2)', background: 'rgba(99,102,241,0.03)' }}>
+            <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>Ready to see it in action?</h3>
+            <p style={{ fontSize: 13, color: theme.textMuted, margin: '0 0 20px' }}>
+              We'll load 3 sample competitors with real changes and AI-generated strategic briefs so you can experience the full product immediately.
+            </p>
+            <button onClick={onLoadDemo} disabled={demoLoading}
+              style={{ ...css.btnPrimary, padding: '14px 36px', fontSize: 15, opacity: demoLoading ? 0.6 : 1 }}>
+              {demoLoading ? '⏳ Loading demo data...' : '🎯 Load Demo Data — See It In Action'}
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -288,9 +311,6 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning }) {
   )
 }
 
-// ============================================================
-// COMPETITORS PAGE
-// ============================================================
 function CompetitorsPage({ competitors, onDelete, onScanOne, setPage }) {
   return (
     <div>
@@ -330,9 +350,6 @@ function CompetitorsPage({ competitors, onDelete, onScanOne, setPage }) {
   )
 }
 
-// ============================================================
-// CHANGES PAGE
-// ============================================================
 function ChangesPage({ changes, setPage, setSelectedReport }) {
   return (
     <div>
@@ -368,9 +385,6 @@ function ChangesPage({ changes, setPage, setSelectedReport }) {
   )
 }
 
-// ============================================================
-// AI BRIEFS PAGE
-// ============================================================
 function BriefsPage({ reports, selectedReport, setSelectedReport }) {
   if (selectedReport && selectedReport.what_changed) {
     return (
@@ -435,9 +449,6 @@ function BriefsPage({ reports, selectedReport, setSelectedReport }) {
   )
 }
 
-// ============================================================
-// ADD COMPETITOR PAGE
-// ============================================================
 function AddPage({ onAdd }) {
   const [form, setForm] = useState({ name: '', website_url: '', pricing_url: '', careers_url: '', github_url: '', docs_url: '', category: 'AI SaaS' })
   const [loading, setLoading] = useState(false)
@@ -513,9 +524,6 @@ function AddPage({ onAdd }) {
   )
 }
 
-// ============================================================
-// SETTINGS PAGE
-// ============================================================
 function SettingsPage({ onLogout }) {
   const user = JSON.parse(localStorage.getItem('radar_user') || '{}')
 
@@ -546,9 +554,6 @@ function SettingsPage({ onLogout }) {
   )
 }
 
-// ============================================================
-// NOTIFICATION
-// ============================================================
 function Toast({ msg, type }) {
   if (!msg) return null
   const colors = { success: theme.green, error: theme.red, info: theme.accent }
@@ -564,9 +569,6 @@ function Toast({ msg, type }) {
   )
 }
 
-// ============================================================
-// MAIN APP
-// ============================================================
 export default function App() {
   const [authed, setAuthed] = useState(api.isLoggedIn())
   const [page, setPage] = useState('dashboard')
@@ -576,6 +578,8 @@ export default function App() {
   const [scanning, setScanning] = useState(false)
   const [toast, setToast] = useState({ msg: '', type: '' })
   const [selectedReport, setSelectedReport] = useState(null)
+  const [demoLoading, setDemoLoading] = useState(false)
+  const [isNewUser, setIsNewUser] = useState(true)
 
   const showToast = (msg, type = 'info') => {
     setToast({ msg, type })
@@ -592,6 +596,9 @@ export default function App() {
       setCompetitors(comps || [])
       setChanges(chgs || [])
       setReports(rpts || [])
+      if ((comps && comps.length > 0) || (chgs && chgs.length > 0)) {
+        setIsNewUser(false)
+      }
     } catch (err) {
       if (err.message.includes('401') || err.message.includes('token')) {
         api.logout()
@@ -612,6 +619,7 @@ export default function App() {
     setCompetitors([])
     setChanges([])
     setReports([])
+    setIsNewUser(true)
   }
 
   const handleScan = async () => {
@@ -625,6 +633,24 @@ export default function App() {
       showToast(err.message, 'error')
     }
     setScanning(false)
+  }
+
+  const handleLoadDemo = async () => {
+    setDemoLoading(true)
+    try {
+      const result = await api.loadDemo()
+      if (result.loaded) {
+        showToast(`Demo loaded: ${result.competitors} competitors, ${result.changes} changes, ${result.briefs} AI briefs`, 'success')
+        setIsNewUser(false)
+        await loadData()
+      } else {
+        showToast('Demo data already loaded', 'info')
+        setIsNewUser(false)
+      }
+    } catch (err) {
+      showToast(err.message, 'error')
+    }
+    setDemoLoading(false)
   }
 
   const handleScanOne = async (id) => {
@@ -662,7 +688,7 @@ export default function App() {
       <Sidebar page={page} setPage={(p) => { setPage(p); setSelectedReport(null) }} stats={stats} />
 
       <main style={{ flex: 1, padding: '28px 36px', overflowY: 'auto', maxHeight: '100vh' }}>
-        {page === 'dashboard' && <DashboardPage competitors={competitors} changes={changes} reports={reports} onScan={handleScan} scanning={scanning} />}
+        {page === 'dashboard' && <DashboardPage competitors={competitors} changes={changes} reports={reports} onScan={handleScan} scanning={scanning} onLoadDemo={handleLoadDemo} demoLoading={demoLoading} isNewUser={isNewUser} />}
         {page === 'competitors' && <CompetitorsPage competitors={competitors} onDelete={handleDelete} onScanOne={handleScanOne} setPage={setPage} />}
         {page === 'changes' && <ChangesPage changes={changes} setPage={setPage} setSelectedReport={setSelectedReport} />}
         {page === 'briefs' && <BriefsPage reports={reports} selectedReport={selectedReport} setSelectedReport={setSelectedReport} />}

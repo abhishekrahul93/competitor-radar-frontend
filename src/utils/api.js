@@ -1,8 +1,3 @@
-/**
- * API Client — connects to the FastAPI backend on Railway.
- * Change API_BASE to your Railway URL after deployment.
- */
-
 const API_BASE = 'https://web-production-4012.up.railway.app';
 
 class ApiClient {
@@ -60,7 +55,6 @@ class ApiClient {
     }
   }
 
-  // Auth
   async signup(email, password, name) {
     const data = await this.request('POST', '/api/auth/signup', { email, password, name });
     this.setToken(data.access_token);
@@ -79,7 +73,6 @@ class ApiClient {
     return this.request('GET', '/api/auth/me');
   }
 
-  // Competitors
   async getCompetitors() {
     return this.request('GET', '/api/competitors/');
   }
@@ -92,7 +85,6 @@ class ApiClient {
     return this.request('DELETE', `/api/competitors/${id}`);
   }
 
-  // Scanning
   async scanAll() {
     return this.request('POST', '/api/scan/all');
   }
@@ -101,14 +93,12 @@ class ApiClient {
     return this.request('POST', `/api/scan/${competitorId}`);
   }
 
-  // Changes
   async getChanges(limit = 30, competitorId = null, minSig = 0) {
     let url = `/api/changes/?limit=${limit}&min_significance=${minSig}`;
     if (competitorId) url += `&competitor_id=${competitorId}`;
     return this.request('GET', url);
   }
 
-  // Reports
   async getReports(limit = 20, competitorId = null) {
     let url = `/api/reports/?limit=${limit}`;
     if (competitorId) url += `&competitor_id=${competitorId}`;
@@ -117,6 +107,10 @@ class ApiClient {
 
   async getReport(id) {
     return this.request('GET', `/api/reports/${id}`);
+  }
+
+  async loadDemo() {
+    return this.request('POST', '/api/demo/setup');
   }
 }
 
