@@ -3,7 +3,7 @@
  * Change API_BASE to your Railway URL after deployment.
  */
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const API_BASE = 'https://web-production-4012.up.railway.app';
 
 class ApiClient {
   constructor() {
