@@ -1,12 +1,10 @@
-import React, { useState, useEffect, createContext, useContext } from 'react'
+import React, { useState, useEffect } from 'react'
 import api from './utils/api'
 
 const theme = {
   bg: '#05050d',
   bgCard: 'rgba(255,255,255,0.02)',
-  bgHover: 'rgba(255,255,255,0.04)',
   border: 'rgba(255,255,255,0.06)',
-  borderHover: 'rgba(255,255,255,0.12)',
   text: '#e2e8f0',
   textMuted: '#64748b',
   textDim: '#475569',
@@ -21,59 +19,11 @@ const theme = {
 }
 
 const css = {
-  card: {
-    background: theme.bgCard,
-    border: `1px solid ${theme.border}`,
-    borderRadius: 14,
-    padding: 20,
-  },
-  input: {
-    width: '100%',
-    padding: '12px 16px',
-    borderRadius: 10,
-    background: 'rgba(255,255,255,0.03)',
-    border: `1px solid ${theme.border}`,
-    color: theme.text,
-    fontSize: 14,
-    fontFamily: theme.font,
-    outline: 'none',
-    boxSizing: 'border-box',
-    transition: 'border-color 0.2s',
-  },
-  btnPrimary: {
-    padding: '12px 28px',
-    borderRadius: 10,
-    border: 'none',
-    background: `linear-gradient(135deg, ${theme.accent}, #4f46e5)`,
-    color: 'white',
-    fontSize: 14,
-    fontWeight: 600,
-    fontFamily: theme.font,
-    cursor: 'pointer',
-    transition: 'transform 0.15s, box-shadow 0.2s',
-  },
-  btnGhost: {
-    padding: '10px 20px',
-    borderRadius: 10,
-    border: `1px solid ${theme.border}`,
-    background: 'transparent',
-    color: theme.textMuted,
-    fontSize: 13,
-    fontWeight: 500,
-    fontFamily: theme.font,
-    cursor: 'pointer',
-  },
-  badge: (color) => ({
-    padding: '3px 10px',
-    borderRadius: 20,
-    fontSize: 10,
-    fontWeight: 700,
-    fontFamily: theme.mono,
-    letterSpacing: 0.5,
-    background: `${color}15`,
-    color: color,
-    textTransform: 'uppercase',
-  }),
+  card: { background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 14, padding: 20 },
+  input: { width: '100%', padding: '12px 16px', borderRadius: 10, background: 'rgba(255,255,255,0.03)', border: `1px solid ${theme.border}`, color: theme.text, fontSize: 14, fontFamily: theme.font, outline: 'none', boxSizing: 'border-box' },
+  btnPrimary: { padding: '12px 28px', borderRadius: 10, border: 'none', background: `linear-gradient(135deg, ${theme.accent}, #4f46e5)`, color: 'white', fontSize: 14, fontWeight: 600, fontFamily: theme.font, cursor: 'pointer' },
+  btnGhost: { padding: '10px 20px', borderRadius: 10, border: `1px solid ${theme.border}`, background: 'transparent', color: theme.textMuted, fontSize: 13, fontWeight: 500, fontFamily: theme.font, cursor: 'pointer' },
+  badge: (color) => ({ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, fontFamily: theme.mono, letterSpacing: 0.5, background: `${color}15`, color: color, textTransform: 'uppercase' }),
   threat: (level) => {
     const colors = { critical: theme.red, high: theme.red, medium: theme.amber, low: theme.green, unknown: theme.textMuted }
     const c = colors[level?.toLowerCase()] || theme.textMuted
@@ -110,12 +60,9 @@ function AuthPage({ onLogin }) {
       <div style={{ width: 400, padding: 40 }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{ fontSize: 36, marginBottom: 8 }}>🎯</div>
-          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>
-            Competitor<span style={{ color: theme.accent }}>Radar</span>
-          </h1>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 6px' }}>Competitor<span style={{ color: theme.accent }}>Radar</span></h1>
           <p style={{ color: theme.textMuted, fontSize: 13, margin: 0 }}>AI-Powered Competitive Intelligence</p>
         </div>
-
         <div style={{ ...css.card, padding: 28 }}>
           <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 3 }}>
             {['login', 'signup'].map(m => (
@@ -125,7 +72,6 @@ function AuthPage({ onLogin }) {
               </button>
             ))}
           </div>
-
           {mode === 'signup' && (
             <div style={{ marginBottom: 14 }}>
               <label style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1, textTransform: 'uppercase' }}>Name</label>
@@ -138,14 +84,10 @@ function AuthPage({ onLogin }) {
           </div>
           <div style={{ marginBottom: 20 }}>
             <label style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1, textTransform: 'uppercase' }}>Password</label>
-            <input value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" type="password" style={css.input}
-              onKeyDown={e => e.key === 'Enter' && handleSubmit()} />
+            <input value={password} onChange={e => setPassword(e.target.value)} placeholder="••••••••" type="password" style={css.input} onKeyDown={e => e.key === 'Enter' && handleSubmit()} />
           </div>
-
           {error && <div style={{ color: theme.red, fontSize: 13, marginBottom: 14, padding: '8px 12px', background: 'rgba(239,68,68,0.08)', borderRadius: 8 }}>{error}</div>}
-
-          <button onClick={handleSubmit} disabled={loading}
-            style={{ ...css.btnPrimary, width: '100%', opacity: loading ? 0.6 : 1 }}>
+          <button onClick={handleSubmit} disabled={loading} style={{ ...css.btnPrimary, width: '100%', opacity: loading ? 0.6 : 1 }}>
             {loading ? 'Please wait...' : mode === 'login' ? 'Log In' : 'Create Account'}
           </button>
         </div>
@@ -163,7 +105,6 @@ function Sidebar({ page, setPage, stats }) {
     { id: 'add', icon: '＋', label: 'Add New' },
     { id: 'settings', icon: '⚙', label: 'Settings' },
   ]
-
   return (
     <div style={{ width: 230, background: '#08081a', borderRight: `1px solid ${theme.border}`, padding: '24px 14px', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 36, paddingLeft: 6 }}>
@@ -173,23 +114,14 @@ function Sidebar({ page, setPage, stats }) {
           <div style={{ fontSize: 8, color: theme.textDim, letterSpacing: 2, textTransform: 'uppercase', fontFamily: theme.mono }}>intelligence</div>
         </div>
       </div>
-
       <nav style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
         {navItems.map(item => (
           <button key={item.id} onClick={() => setPage(item.id)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8,
-              border: 'none', background: page === item.id ? theme.accentGlow : 'transparent',
-              color: page === item.id ? '#a5b4fc' : theme.textMuted,
-              fontSize: 13, fontWeight: 500, fontFamily: theme.font, cursor: 'pointer',
-              transition: 'all 0.15s', width: '100%', textAlign: 'left',
-            }}>
-            <span style={{ fontSize: 14, width: 20, textAlign: 'center' }}>{item.icon}</span>
-            {item.label}
+            style={{ display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', borderRadius: 8, border: 'none', background: page === item.id ? theme.accentGlow : 'transparent', color: page === item.id ? '#a5b4fc' : theme.textMuted, fontSize: 13, fontWeight: 500, fontFamily: theme.font, cursor: 'pointer', width: '100%', textAlign: 'left' }}>
+            <span style={{ fontSize: 14, width: 20, textAlign: 'center' }}>{item.icon}</span>{item.label}
           </button>
         ))}
       </nav>
-
       <div style={{ marginTop: 'auto', paddingTop: 20, borderTop: `1px solid ${theme.border}` }}>
         <div style={{ fontSize: 10, color: theme.textDim, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 10, fontFamily: theme.mono }}>System</div>
         <div style={{ fontSize: 12, color: theme.textMuted, marginBottom: 4 }}>● Tracking {stats.competitors || 0}</div>
@@ -212,15 +144,10 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
     return (
       <div>
         <div style={{ textAlign: 'center', padding: '40px 0 20px' }}>
-          <div style={{ fontSize: 48, marginBottom: 12, filter: 'drop-shadow(0 0 20px rgba(99,102,241,0.3))' }}>🎯</div>
-          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 8px' }}>
-            Welcome to Competitor<span style={{ color: theme.accent }}>Radar</span>
-          </h1>
-          <p style={{ color: theme.textMuted, fontSize: 14, margin: 0, maxWidth: 500, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.7 }}>
-            AI-powered competitive intelligence that monitors your competitors 24/7 and writes strategic briefs while you sleep.
-          </p>
+          <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
+          <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 8px' }}>Welcome to Competitor<span style={{ color: theme.accent }}>Radar</span></h1>
+          <p style={{ color: theme.textMuted, fontSize: 14, margin: 0, maxWidth: 500, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.7 }}>AI-powered competitive intelligence that monitors your competitors 24/7 and writes strategic briefs while you sleep.</p>
         </div>
-
         <div style={{ maxWidth: 700, margin: '30px auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 30 }}>
             {[
@@ -228,7 +155,7 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
               { step: '02', title: 'Explore Dashboard', desc: 'Browse changes, read AI strategic briefs, and check threat levels', icon: '🔍' },
               { step: '03', title: 'Add Your Own', desc: 'Track your real competitors and get intelligence delivered to your inbox', icon: '🚀' },
             ].map((s, i) => (
-              <div key={i} style={{ ...css.card, textAlign: 'center', padding: 20, position: 'relative' }}>
+              <div key={i} style={{ ...css.card, textAlign: 'center', padding: 20 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: theme.accent, letterSpacing: 2, fontFamily: theme.mono, marginBottom: 8 }}>STEP {s.step}</div>
                 <div style={{ fontSize: 24, marginBottom: 8 }}>{s.icon}</div>
                 <div style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 6 }}>{s.title}</div>
@@ -236,14 +163,10 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
               </div>
             ))}
           </div>
-
           <div style={{ ...css.card, textAlign: 'center', padding: 30, borderColor: 'rgba(99,102,241,0.2)', background: 'rgba(99,102,241,0.03)' }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>Ready to see it in action?</h3>
-            <p style={{ fontSize: 13, color: theme.textMuted, margin: '0 0 20px' }}>
-              We'll load 3 sample competitors with real changes and AI-generated strategic briefs so you can experience the full product immediately.
-            </p>
-            <button onClick={onLoadDemo} disabled={demoLoading}
-              style={{ ...css.btnPrimary, padding: '14px 36px', fontSize: 15, opacity: demoLoading ? 0.6 : 1 }}>
+            <p style={{ fontSize: 13, color: theme.textMuted, margin: '0 0 20px' }}>We'll load 3 sample competitors with real changes and AI-generated strategic briefs.</p>
+            <button onClick={onLoadDemo} disabled={demoLoading} style={{ ...css.btnPrimary, padding: '14px 36px', fontSize: 15, opacity: demoLoading ? 0.6 : 1 }}>
               {demoLoading ? '⏳ Loading demo data...' : '🎯 Load Demo Data — See It In Action'}
             </button>
           </div>
@@ -258,7 +181,6 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
         <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Intelligence Dashboard</h1>
         <p style={{ color: theme.textMuted, fontSize: 13, margin: 0 }}>Real-time competitive signals across your market</p>
       </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 24 }}>
         {statCards.map((s, i) => (
           <div key={i} style={{ ...css.card, textAlign: 'center', padding: '18px 12px' }}>
@@ -267,7 +189,6 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
           </div>
         ))}
       </div>
-
       <div style={{ ...css.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}>
         <div>
           <div style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>Run Competitive Scan</div>
@@ -277,7 +198,6 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
           {scanning ? '⏳ Scanning...' : '🔍 Scan Now'}
         </button>
       </div>
-
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <div style={css.card}>
           <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 14px' }}>Recent Changes</h3>
@@ -292,7 +212,6 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
             </div>
           ))}
         </div>
-
         <div style={css.card}>
           <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 14px' }}>Tracked Competitors</h3>
           {competitors.length === 0 && <p style={{ color: theme.textDim, fontSize: 13 }}>No competitors yet. Add your first one.</p>}
@@ -321,14 +240,12 @@ function CompetitorsPage({ competitors, onDelete, onScanOne, setPage }) {
         </div>
         <button onClick={() => setPage('add')} style={css.btnPrimary}>＋ Add Competitor</button>
       </div>
-
       {competitors.length === 0 && (
         <div style={{ ...css.card, textAlign: 'center', padding: 40 }}>
           <div style={{ fontSize: 36, marginBottom: 12 }}>🎯</div>
           <p style={{ color: theme.textMuted }}>No competitors tracked yet. Add your first one to get started.</p>
         </div>
       )}
-
       <div style={{ display: 'grid', gap: 10 }}>
         {competitors.map(comp => (
           <div key={comp.id} style={{ ...css.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -355,17 +272,15 @@ function ChangesPage({ changes, setPage, setSelectedReport }) {
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Detected Changes</h1>
       <p style={{ color: theme.textMuted, fontSize: 13, margin: '0 0 24px' }}>Every competitive movement captured by the scanner</p>
-
       {changes.length === 0 && (
         <div style={{ ...css.card, textAlign: 'center', padding: 40 }}>
           <p style={{ color: theme.textMuted }}>No changes detected yet. Run a scan to start monitoring.</p>
         </div>
       )}
-
       <div style={{ display: 'grid', gap: 10 }}>
         {changes.map((c, i) => (
           <div key={i} onClick={() => { setSelectedReport(c); setPage('briefs') }}
-            style={{ ...css.card, borderLeft: `4px solid ${c.significance >= 0.8 ? theme.red : c.significance >= 0.5 ? theme.amber : theme.green}`, cursor: 'pointer', transition: 'border-color 0.2s' }}>
+            style={{ ...css.card, borderLeft: `4px solid ${c.significance >= 0.8 ? theme.red : c.significance >= 0.5 ? theme.amber : theme.green}`, cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
@@ -390,13 +305,11 @@ function BriefsPage({ reports, selectedReport, setSelectedReport }) {
     return (
       <div>
         <button onClick={() => setSelectedReport(null)} style={{ ...css.btnGhost, marginBottom: 20, padding: '6px 16px', fontSize: 12 }}>← Back to all briefs</button>
-
         <div style={{ ...css.card, borderLeft: `4px solid ${theme.accent}` }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 20 }}>
             <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{selectedReport.competitor_name || selectedReport.title}</span>
             {selectedReport.threat_level && <span style={css.threat(selectedReport.threat_level?.split(' ')[0]?.split('\n')[0])}>{selectedReport.threat_level?.split('\n')[0]}</span>}
           </div>
-
           {[
             { key: 'what_changed', title: 'WHAT CHANGED', color: theme.accent },
             { key: 'why_it_matters', title: 'WHY IT MATTERS', color: theme.amber },
@@ -421,16 +334,14 @@ function BriefsPage({ reports, selectedReport, setSelectedReport }) {
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>AI Strategic Briefs</h1>
       <p style={{ color: theme.textMuted, fontSize: 13, margin: '0 0 24px' }}>AI-generated intelligence with actionable recommendations</p>
-
       {reports.length === 0 && (
         <div style={{ ...css.card, textAlign: 'center', padding: 40 }}>
           <p style={{ color: theme.textMuted }}>No briefs generated yet. Run a scan to detect changes and generate AI analysis.</p>
         </div>
       )}
-
       <div style={{ display: 'grid', gap: 10 }}>
         {reports.map((r, i) => (
-          <div key={i} onClick={() => setSelectedReport(r)} style={{ ...css.card, cursor: 'pointer', transition: 'border-color 0.2s' }}>
+          <div key={i} onClick={() => setSelectedReport(r)} style={{ ...css.card, cursor: 'pointer' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
               <div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
@@ -464,9 +375,7 @@ function AddPage({ onAdd }) {
       setForm({ name: '', website_url: '', pricing_url: '', careers_url: '', github_url: '', docs_url: '', category: 'AI SaaS' })
       onAdd()
       setTimeout(() => setSuccess(''), 3000)
-    } catch (err) {
-      setError(err.message)
-    }
+    } catch (err) { setError(err.message) }
     setLoading(false)
   }
 
@@ -476,18 +385,15 @@ function AddPage({ onAdd }) {
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Add Competitor</h1>
       <p style={{ color: theme.textMuted, fontSize: 13, margin: '0 0 24px' }}>Start tracking a new competitor's every move</p>
-
       <div style={{ ...css.card, maxWidth: 640, padding: 28 }}>
         <div style={{ marginBottom: 16 }}>
           <label style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: theme.mono }}>Competitor Name *</label>
           <input value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="e.g., Jasper AI" style={css.input} />
         </div>
-
         <div style={{ marginBottom: 16 }}>
           <label style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: theme.mono }}>Website URL *</label>
           <input value={form.website_url} onChange={e => setForm(f => ({ ...f, website_url: e.target.value }))} placeholder="https://jasper.ai" style={css.input} />
         </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: theme.mono }}>Pricing Page</label>
@@ -498,7 +404,6 @@ function AddPage({ onAdd }) {
             <input value={form.careers_url} onChange={e => setForm(f => ({ ...f, careers_url: e.target.value }))} placeholder="https://jasper.ai/careers" style={css.input} />
           </div>
         </div>
-
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: theme.mono }}>GitHub URL</label>
@@ -506,16 +411,13 @@ function AddPage({ onAdd }) {
           </div>
           <div>
             <label style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: theme.mono }}>Category</label>
-            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-              style={{ ...css.input, appearance: 'auto' }}>
+            <select value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} style={{ ...css.input, appearance: 'auto' }}>
               {categories.map(c => <option key={c} value={c}>{c}</option>)}
             </select>
           </div>
         </div>
-
         {error && <div style={{ color: theme.red, fontSize: 13, marginBottom: 14, padding: '8px 12px', background: 'rgba(239,68,68,0.08)', borderRadius: 8 }}>{error}</div>}
         {success && <div style={{ color: theme.green, fontSize: 13, marginBottom: 14, padding: '8px 12px', background: 'rgba(16,185,129,0.08)', borderRadius: 8 }}>✓ {success}</div>}
-
         <button onClick={handleSubmit} disabled={loading} style={{ ...css.btnPrimary, width: '100%', opacity: loading ? 0.6 : 1 }}>
           {loading ? 'Adding...' : '🎯 Start Tracking'}
         </button>
@@ -526,26 +428,14 @@ function AddPage({ onAdd }) {
 
 function SettingsPage({ onLogout }) {
   const user = JSON.parse(localStorage.getItem('radar_user') || '{}')
-
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 24px' }}>Settings</h1>
-
       <div style={{ ...css.card, maxWidth: 500, marginBottom: 16 }}>
         <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 12px' }}>Account</h3>
         <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 6 }}>Email: {user.email || 'N/A'}</div>
-        <div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 6 }}>Plan: {user.plan || 'free'}</div>
+        <div style={{ fontSize: 13, color: theme.textMuted }}>Plan: {user.plan || 'free'}</div>
       </div>
-
-      <div style={{ ...css.card, maxWidth: 500, marginBottom: 16 }}>
-        <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>AI Configuration</h3>
-        <p style={{ fontSize: 12, color: theme.textMuted, margin: '0 0 12px' }}>Set your AI API key as an environment variable on Railway. The backend uses it for analysis.</p>
-        <div style={{ fontSize: 11, color: theme.textDim, fontFamily: theme.mono, background: 'rgba(255,255,255,0.03)', padding: 10, borderRadius: 6 }}>
-          OPENAI_API_KEY=sk-your-key<br />
-          AI_PROVIDER=openai
-        </div>
-      </div>
-
       <div style={{ ...css.card, maxWidth: 500, borderColor: 'rgba(239,68,68,0.15)' }}>
         <h3 style={{ fontSize: 14, fontWeight: 700, color: theme.red, margin: '0 0 12px' }}>Log Out</h3>
         <button onClick={onLogout} style={{ ...css.btnGhost, color: theme.red, borderColor: 'rgba(239,68,68,0.2)' }}>Log Out</button>
@@ -559,11 +449,7 @@ function Toast({ msg, type }) {
   const colors = { success: theme.green, error: theme.red, info: theme.accent }
   const c = colors[type] || theme.accent
   return (
-    <div style={{
-      position: 'fixed', top: 16, right: 16, zIndex: 999, padding: '12px 20px', borderRadius: 10,
-      background: `${c}12`, border: `1px solid ${c}40`, color: c, fontSize: 13, fontWeight: 600,
-      fontFamily: theme.font, backdropFilter: 'blur(10px)', maxWidth: 400,
-    }}>
+    <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 999, padding: '12px 20px', borderRadius: 10, background: `${c}12`, border: `1px solid ${c}40`, color: c, fontSize: 13, fontWeight: 600, fontFamily: theme.font, backdropFilter: 'blur(10px)', maxWidth: 400 }}>
       {type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'} {msg}
     </div>
   )
@@ -600,10 +486,7 @@ export default function App() {
         setIsNewUser(false)
       }
     } catch (err) {
-      if (err.message.includes('401') || err.message.includes('token')) {
-        api.logout()
-        setAuthed(false)
-      }
+      console.log('Load data error:', err.message)
     }
   }
 
@@ -612,15 +495,7 @@ export default function App() {
   }, [authed])
 
   const handleLogin = () => { setAuthed(true) }
-
-  const handleLogout = () => {
-    api.logout()
-    setAuthed(false)
-    setCompetitors([])
-    setChanges([])
-    setReports([])
-    setIsNewUser(true)
-  }
+  const handleLogout = () => { api.logout(); setAuthed(false); setCompetitors([]); setChanges([]); setReports([]); setIsNewUser(true) }
 
   const handleScan = async () => {
     setScanning(true)
@@ -629,9 +504,7 @@ export default function App() {
       const result = await api.scanAll()
       showToast(result.message, 'success')
       await loadData()
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
+    } catch (err) { showToast(err.message, 'error') }
     setScanning(false)
   }
 
@@ -647,9 +520,7 @@ export default function App() {
         showToast('Demo data already loaded', 'info')
         setIsNewUser(false)
       }
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
+    } catch (err) { showToast(err.message, 'error') }
     setDemoLoading(false)
   }
 
@@ -659,9 +530,7 @@ export default function App() {
       const result = await api.scanOne(id)
       showToast(`${result.competitor}: ${result.changes_found} changes found`, result.changes_found > 0 ? 'success' : 'info')
       await loadData()
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
+    } catch (err) { showToast(err.message, 'error') }
   }
 
   const handleDelete = async (id) => {
@@ -669,24 +538,17 @@ export default function App() {
       await api.deleteCompetitor(id)
       showToast('Competitor removed', 'success')
       await loadData()
-    } catch (err) {
-      showToast(err.message, 'error')
-    }
+    } catch (err) { showToast(err.message, 'error') }
   }
 
   if (!authed) return <AuthPage onLogin={handleLogin} />
 
-  const stats = {
-    competitors: competitors.length,
-    changes: changes.length,
-    reports: reports.length,
-  }
+  const stats = { competitors: competitors.length, changes: changes.length, reports: reports.length }
 
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: theme.bg, fontFamily: theme.font }}>
       <Toast msg={toast.msg} type={toast.type} />
       <Sidebar page={page} setPage={(p) => { setPage(p); setSelectedReport(null) }} stats={stats} />
-
       <main style={{ flex: 1, padding: '28px 36px', overflowY: 'auto', maxHeight: '100vh' }}>
         {page === 'dashboard' && <DashboardPage competitors={competitors} changes={changes} reports={reports} onScan={handleScan} scanning={scanning} onLoadDemo={handleLoadDemo} demoLoading={demoLoading} isNewUser={isNewUser} />}
         {page === 'competitors' && <CompetitorsPage competitors={competitors} onDelete={handleDelete} onScanOne={handleScanOne} setPage={setPage} />}
@@ -694,10 +556,7 @@ export default function App() {
         {page === 'briefs' && <BriefsPage reports={reports} selectedReport={selectedReport} setSelectedReport={setSelectedReport} />}
         {page === 'add' && <AddPage onAdd={loadData} />}
         {page === 'settings' && <SettingsPage onLogout={handleLogout} />}
-
-        <div style={{ textAlign: 'center', color: theme.textDim, fontSize: 11, marginTop: 40, paddingBottom: 20, fontFamily: theme.mono }}>
-          Competitor Radar AI · Built by Abhishek R.
-        </div>
+        <div style={{ textAlign: 'center', color: theme.textDim, fontSize: 11, marginTop: 40, paddingBottom: 20, fontFamily: theme.mono }}>Competitor Radar AI · Built by Abhishek R.</div>
       </main>
     </div>
   )

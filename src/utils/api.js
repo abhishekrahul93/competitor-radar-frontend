@@ -41,7 +41,13 @@ class ApiClient {
 
     try {
       const res = await fetch(`${this.base}${path}`, opts);
-      const data = await res.json();
+      const text = await res.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`Server returned invalid response: ${text.slice(0, 100)}`);
+      }
 
       if (!res.ok) {
         const msg = typeof data.detail === 'string' ? data.detail : (data.message || JSON.stringify(data.detail) || `Request failed: ${res.status}`);
