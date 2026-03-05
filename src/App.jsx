@@ -26,8 +26,7 @@ const css = {
   badge: (color) => ({ padding: '3px 10px', borderRadius: 20, fontSize: 10, fontWeight: 700, fontFamily: theme.mono, letterSpacing: 0.5, background: `${color}15`, color: color, textTransform: 'uppercase' }),
   threat: (level) => {
     const colors = { critical: theme.red, high: theme.red, medium: theme.amber, low: theme.green, unknown: theme.textMuted }
-    const c = colors[level?.toLowerCase()] || theme.textMuted
-    return css.badge(c)
+    return css.badge(colors[level?.toLowerCase()] || theme.textMuted)
   },
 }
 
@@ -133,27 +132,20 @@ function Sidebar({ page, setPage, stats }) {
 }
 
 function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoadDemo, demoLoading, isNewUser }) {
-  const statCards = [
-    { label: 'Tracking', value: competitors.length, color: theme.accent },
-    { label: 'Changes', value: changes.length, color: theme.red },
-    { label: 'AI Briefs', value: reports.length, color: theme.green },
-    { label: 'High Priority', value: changes.filter(c => c.significance >= 0.8).length, color: theme.amber },
-  ]
-
   if (isNewUser && competitors.length === 0) {
     return (
       <div>
         <div style={{ textAlign: 'center', padding: '40px 0 20px' }}>
           <div style={{ fontSize: 48, marginBottom: 12 }}>🎯</div>
           <h1 style={{ fontSize: 26, fontWeight: 800, color: '#fff', margin: '0 0 8px' }}>Welcome to Competitor<span style={{ color: theme.accent }}>Radar</span></h1>
-          <p style={{ color: theme.textMuted, fontSize: 14, margin: 0, maxWidth: 500, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.7 }}>AI-powered competitive intelligence that monitors your competitors 24/7 and writes strategic briefs while you sleep.</p>
+          <p style={{ color: theme.textMuted, fontSize: 14, margin: 0, maxWidth: 500, marginLeft: 'auto', marginRight: 'auto', lineHeight: 1.7 }}>AI-powered competitive intelligence that monitors your competitors 24/7.</p>
         </div>
         <div style={{ maxWidth: 700, margin: '30px auto' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 30 }}>
             {[
-              { step: '01', title: 'Load Demo Data', desc: 'See the product in action with real sample competitors and AI briefs', icon: '📊' },
-              { step: '02', title: 'Explore Dashboard', desc: 'Browse changes, read AI strategic briefs, and check threat levels', icon: '🔍' },
-              { step: '03', title: 'Add Your Own', desc: 'Track your real competitors and get intelligence delivered to your inbox', icon: '🚀' },
+              { step: '01', title: 'Load Demo Data', desc: 'See the product in action with sample competitors and AI briefs', icon: '📊' },
+              { step: '02', title: 'Explore Dashboard', desc: 'Browse changes, read AI briefs, and check threat levels', icon: '🔍' },
+              { step: '03', title: 'Add Your Own', desc: 'Track your real competitors and get intelligence delivered', icon: '🚀' },
             ].map((s, i) => (
               <div key={i} style={{ ...css.card, textAlign: 'center', padding: 20 }}>
                 <div style={{ fontSize: 10, fontWeight: 700, color: theme.accent, letterSpacing: 2, fontFamily: theme.mono, marginBottom: 8 }}>STEP {s.step}</div>
@@ -165,15 +157,22 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
           </div>
           <div style={{ ...css.card, textAlign: 'center', padding: 30, borderColor: 'rgba(99,102,241,0.2)', background: 'rgba(99,102,241,0.03)' }}>
             <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', margin: '0 0 8px' }}>Ready to see it in action?</h3>
-            <p style={{ fontSize: 13, color: theme.textMuted, margin: '0 0 20px' }}>We'll load 3 sample competitors with real changes and AI-generated strategic briefs.</p>
+            <p style={{ fontSize: 13, color: theme.textMuted, margin: '0 0 20px' }}>Load 3 sample competitors with changes and AI briefs.</p>
             <button onClick={onLoadDemo} disabled={demoLoading} style={{ ...css.btnPrimary, padding: '14px 36px', fontSize: 15, opacity: demoLoading ? 0.6 : 1 }}>
-              {demoLoading ? '⏳ Loading demo data...' : '🎯 Load Demo Data — See It In Action'}
+              {demoLoading ? '⏳ Loading...' : '🎯 Load Demo Data'}
             </button>
           </div>
         </div>
       </div>
     )
   }
+
+  const statCards = [
+    { label: 'Tracking', value: competitors.length, color: theme.accent },
+    { label: 'Changes', value: changes.length, color: theme.red },
+    { label: 'AI Briefs', value: reports.length, color: theme.green },
+    { label: 'High Priority', value: changes.filter(c => c.significance >= 0.8).length, color: theme.amber },
+  ]
 
   return (
     <div>
@@ -201,9 +200,9 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
         <div style={css.card}>
           <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 14px' }}>Recent Changes</h3>
-          {changes.length === 0 && <p style={{ color: theme.textDim, fontSize: 13 }}>No changes yet. Add competitors and run a scan.</p>}
+          {changes.length === 0 && <p style={{ color: theme.textDim, fontSize: 13 }}>No changes yet. Run a scan.</p>}
           {changes.slice(0, 5).map((c, i) => (
-            <div key={i} style={{ padding: '10px 0', borderBottom: `1px solid ${theme.border}`, display: 'flex', gap: 10, alignItems: 'flex-start' }}>
+            <div key={i} style={{ padding: '10px 0', borderBottom: `1px solid ${theme.border}`, display: 'flex', gap: 10 }}>
               <div style={{ width: 7, height: 7, borderRadius: '50%', marginTop: 6, flexShrink: 0, background: c.significance >= 0.8 ? theme.red : c.significance >= 0.5 ? theme.amber : theme.green }} />
               <div>
                 <div style={{ fontSize: 13, color: '#cbd5e1', fontWeight: 500 }}>{c.summary?.slice(0, 100)}</div>
@@ -214,7 +213,7 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
         </div>
         <div style={css.card}>
           <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 14px' }}>Tracked Competitors</h3>
-          {competitors.length === 0 && <p style={{ color: theme.textDim, fontSize: 13 }}>No competitors yet. Add your first one.</p>}
+          {competitors.length === 0 && <p style={{ color: theme.textDim, fontSize: 13 }}>No competitors yet.</p>}
           {competitors.map((comp, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: `1px solid ${theme.border}` }}>
               <div>
@@ -240,12 +239,7 @@ function CompetitorsPage({ competitors, onDelete, onScanOne, setPage }) {
         </div>
         <button onClick={() => setPage('add')} style={css.btnPrimary}>＋ Add Competitor</button>
       </div>
-      {competitors.length === 0 && (
-        <div style={{ ...css.card, textAlign: 'center', padding: 40 }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>🎯</div>
-          <p style={{ color: theme.textMuted }}>No competitors tracked yet. Add your first one to get started.</p>
-        </div>
-      )}
+      {competitors.length === 0 && <div style={{ ...css.card, textAlign: 'center', padding: 40 }}><p style={{ color: theme.textMuted }}>No competitors yet.</p></div>}
       <div style={{ display: 'grid', gap: 10 }}>
         {competitors.map(comp => (
           <div key={comp.id} style={{ ...css.card, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -255,7 +249,6 @@ function CompetitorsPage({ competitors, onDelete, onScanOne, setPage }) {
             </div>
             <div style={{ flex: 1, fontSize: 12, color: theme.textMuted }}>{comp.category}</div>
             <div style={{ flex: 1, fontSize: 12, color: theme.textMuted }}>{comp.changes_count} changes</div>
-            <div style={{ flex: 1, fontSize: 11, color: theme.textDim }}>{comp.last_scanned ? `Last: ${new Date(comp.last_scanned).toLocaleDateString()}` : 'Never scanned'}</div>
             <div style={{ display: 'flex', gap: 6 }}>
               <button onClick={() => onScanOne(comp.id)} style={{ ...css.btnGhost, padding: '6px 14px', fontSize: 11 }}>Scan</button>
               <button onClick={() => onDelete(comp.id)} style={{ ...css.btnGhost, padding: '6px 14px', fontSize: 11, color: theme.red, borderColor: 'rgba(239,68,68,0.2)' }}>Remove</button>
@@ -271,17 +264,13 @@ function ChangesPage({ changes, setPage, setSelectedReport }) {
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Detected Changes</h1>
-      <p style={{ color: theme.textMuted, fontSize: 13, margin: '0 0 24px' }}>Every competitive movement captured by the scanner</p>
-      {changes.length === 0 && (
-        <div style={{ ...css.card, textAlign: 'center', padding: 40 }}>
-          <p style={{ color: theme.textMuted }}>No changes detected yet. Run a scan to start monitoring.</p>
-        </div>
-      )}
+      <p style={{ color: theme.textMuted, fontSize: 13, margin: '0 0 24px' }}>Every competitive movement captured</p>
+      {changes.length === 0 && <div style={{ ...css.card, textAlign: 'center', padding: 40 }}><p style={{ color: theme.textMuted }}>No changes detected yet.</p></div>}
       <div style={{ display: 'grid', gap: 10 }}>
         {changes.map((c, i) => (
           <div key={i} onClick={() => { setSelectedReport(c); setPage('briefs') }}
             style={{ ...css.card, borderLeft: `4px solid ${c.significance >= 0.8 ? theme.red : c.significance >= 0.5 ? theme.amber : theme.green}`, cursor: 'pointer' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{c.competitor_name}</span>
@@ -304,7 +293,7 @@ function BriefsPage({ reports, selectedReport, setSelectedReport }) {
   if (selectedReport && selectedReport.what_changed) {
     return (
       <div>
-        <button onClick={() => setSelectedReport(null)} style={{ ...css.btnGhost, marginBottom: 20, padding: '6px 16px', fontSize: 12 }}>← Back to all briefs</button>
+        <button onClick={() => setSelectedReport(null)} style={{ ...css.btnGhost, marginBottom: 20, padding: '6px 16px', fontSize: 12 }}>← Back</button>
         <div style={{ ...css.card, borderLeft: `4px solid ${theme.accent}` }}>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 20 }}>
             <span style={{ fontSize: 18, fontWeight: 800, color: '#fff' }}>{selectedReport.competitor_name || selectedReport.title}</span>
@@ -315,13 +304,11 @@ function BriefsPage({ reports, selectedReport, setSelectedReport }) {
             { key: 'why_it_matters', title: 'WHY IT MATTERS', color: theme.amber },
             { key: 'what_to_do', title: 'WHAT YOU SHOULD DO', color: theme.green },
             { key: 'threat_level', title: 'THREAT LEVEL', color: theme.red },
-          ].map(section => (
-            selectedReport[section.key] ? (
-              <div key={section.key} style={{ marginBottom: 20 }}>
-                <div style={{ fontSize: 10, fontWeight: 700, color: section.color, letterSpacing: 2, marginBottom: 8, fontFamily: theme.mono }}>{section.title}</div>
-                <div style={{ fontSize: 14, color: '#cbd5e1', lineHeight: 1.8, whiteSpace: 'pre-line', background: 'rgba(255,255,255,0.02)', padding: 16, borderRadius: 10, border: `1px solid ${theme.border}` }}>
-                  {selectedReport[section.key]}
-                </div>
+          ].map(s => (
+            selectedReport[s.key] ? (
+              <div key={s.key} style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 10, fontWeight: 700, color: s.color, letterSpacing: 2, marginBottom: 8, fontFamily: theme.mono }}>{s.title}</div>
+                <div style={{ fontSize: 14, color: '#cbd5e1', lineHeight: 1.8, whiteSpace: 'pre-line', background: 'rgba(255,255,255,0.02)', padding: 16, borderRadius: 10, border: `1px solid ${theme.border}` }}>{selectedReport[s.key]}</div>
               </div>
             ) : null
           ))}
@@ -329,20 +316,15 @@ function BriefsPage({ reports, selectedReport, setSelectedReport }) {
       </div>
     )
   }
-
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>AI Strategic Briefs</h1>
       <p style={{ color: theme.textMuted, fontSize: 13, margin: '0 0 24px' }}>AI-generated intelligence with actionable recommendations</p>
-      {reports.length === 0 && (
-        <div style={{ ...css.card, textAlign: 'center', padding: 40 }}>
-          <p style={{ color: theme.textMuted }}>No briefs generated yet. Run a scan to detect changes and generate AI analysis.</p>
-        </div>
-      )}
+      {reports.length === 0 && <div style={{ ...css.card, textAlign: 'center', padding: 40 }}><p style={{ color: theme.textMuted }}>No briefs yet. Run a scan to generate.</p></div>}
       <div style={{ display: 'grid', gap: 10 }}>
         {reports.map((r, i) => (
           <div key={i} onClick={() => setSelectedReport(r)} style={{ ...css.card, cursor: 'pointer' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
               <div>
                 <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6 }}>
                   <span style={{ fontSize: 14, fontWeight: 700, color: '#fff' }}>{r.competitor_name}</span>
@@ -365,7 +347,6 @@ function AddPage({ onAdd }) {
   const [loading, setLoading] = useState(false)
   const [success, setSuccess] = useState('')
   const [error, setError] = useState('')
-
   const handleSubmit = async () => {
     if (!form.name || !form.website_url) { setError('Name and Website URL are required'); return }
     setLoading(true); setError('')
@@ -378,13 +359,11 @@ function AddPage({ onAdd }) {
     } catch (err) { setError(err.message) }
     setLoading(false)
   }
-
   const categories = ['AI SaaS', 'Developer Tools', 'Analytics', 'Ecommerce', 'FinTech', 'Marketing', 'Productivity', 'Other']
-
   return (
     <div>
       <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Add Competitor</h1>
-      <p style={{ color: theme.textMuted, fontSize: 13, margin: '0 0 24px' }}>Start tracking a new competitor's every move</p>
+      <p style={{ color: theme.textMuted, fontSize: 13, margin: '0 0 24px' }}>Start tracking a new competitor</p>
       <div style={{ ...css.card, maxWidth: 640, padding: 28 }}>
         <div style={{ marginBottom: 16 }}>
           <label style={{ fontSize: 10, fontWeight: 700, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1.5, textTransform: 'uppercase', fontFamily: theme.mono }}>Competitor Name *</label>
@@ -449,7 +428,7 @@ function Toast({ msg, type }) {
   const colors = { success: theme.green, error: theme.red, info: theme.accent }
   const c = colors[type] || theme.accent
   return (
-    <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 999, padding: '12px 20px', borderRadius: 10, background: `${c}12`, border: `1px solid ${c}40`, color: c, fontSize: 13, fontWeight: 600, fontFamily: theme.font, backdropFilter: 'blur(10px)', maxWidth: 400 }}>
+    <div style={{ position: 'fixed', top: 16, right: 16, zIndex: 999, padding: '12px 20px', borderRadius: 10, background: `${c}12`, border: `1px solid ${c}40`, color: c, fontSize: 13, fontWeight: 600, fontFamily: theme.font, maxWidth: 400 }}>
       {type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ'} {msg}
     </div>
   )
@@ -473,21 +452,14 @@ export default function App() {
   }
 
   const loadData = async () => {
-    try {
-      const [comps, chgs, rpts] = await Promise.all([
-        api.getCompetitors(),
-        api.getChanges(),
-        api.getReports(),
-      ])
-      setCompetitors(comps || [])
-      setChanges(chgs || [])
-      setReports(rpts || [])
-      if ((comps && comps.length > 0) || (chgs && chgs.length > 0)) {
-        setIsNewUser(false)
-      }
-    } catch (err) {
-      console.log('Load data error:', err.message)
-    }
+    let comps = [], chgs = [], rpts = []
+    try { comps = await api.getCompetitors() || [] } catch (e) { console.log('competitors error:', e.message) }
+    try { chgs = await api.getChanges() || [] } catch (e) { console.log('changes error:', e.message) }
+    try { rpts = await api.getReports() || [] } catch (e) { console.log('reports error:', e.message) }
+    setCompetitors(comps)
+    setChanges(chgs)
+    setReports(rpts)
+    if (comps.length > 0 || chgs.length > 0) setIsNewUser(false)
   }
 
   useEffect(() => {
@@ -498,57 +470,39 @@ export default function App() {
   const handleLogout = () => { api.logout(); setAuthed(false); setCompetitors([]); setChanges([]); setReports([]); setIsNewUser(true) }
 
   const handleScan = async () => {
-    setScanning(true)
-    showToast('Scanning all competitors...', 'info')
-    try {
-      const result = await api.scanAll()
-      showToast(result.message, 'success')
-      await loadData()
-    } catch (err) { showToast(err.message, 'error') }
+    setScanning(true); showToast('Scanning...', 'info')
+    try { const r = await api.scanAll(); showToast(r.message, 'success'); await loadData() }
+    catch (e) { showToast(e.message, 'error') }
     setScanning(false)
   }
 
   const handleLoadDemo = async () => {
     setDemoLoading(true)
     try {
-      const result = await api.loadDemo()
-      if (result.loaded) {
-        showToast(`Demo loaded: ${result.competitors} competitors, ${result.changes} changes, ${result.briefs} AI briefs`, 'success')
-        setIsNewUser(false)
-        await loadData()
-      } else {
-        showToast('Demo data already loaded', 'info')
-        setIsNewUser(false)
-      }
-    } catch (err) { showToast(err.message, 'error') }
+      const r = await api.loadDemo()
+      if (r.loaded) { showToast(`Demo loaded!`, 'success'); setIsNewUser(false); await loadData() }
+      else { showToast('Demo already loaded', 'info'); setIsNewUser(false) }
+    } catch (e) { showToast(e.message, 'error') }
     setDemoLoading(false)
   }
 
   const handleScanOne = async (id) => {
-    showToast('Scanning competitor...', 'info')
-    try {
-      const result = await api.scanOne(id)
-      showToast(`${result.competitor}: ${result.changes_found} changes found`, result.changes_found > 0 ? 'success' : 'info')
-      await loadData()
-    } catch (err) { showToast(err.message, 'error') }
+    showToast('Scanning...', 'info')
+    try { const r = await api.scanOne(id); showToast(`${r.competitor}: ${r.changes_found} changes`, 'success'); await loadData() }
+    catch (e) { showToast(e.message, 'error') }
   }
 
   const handleDelete = async (id) => {
-    try {
-      await api.deleteCompetitor(id)
-      showToast('Competitor removed', 'success')
-      await loadData()
-    } catch (err) { showToast(err.message, 'error') }
+    try { await api.deleteCompetitor(id); showToast('Removed', 'success'); await loadData() }
+    catch (e) { showToast(e.message, 'error') }
   }
 
   if (!authed) return <AuthPage onLogin={handleLogin} />
 
-  const stats = { competitors: competitors.length, changes: changes.length, reports: reports.length }
-
   return (
     <div style={{ display: 'flex', minHeight: '100vh', background: theme.bg, fontFamily: theme.font }}>
       <Toast msg={toast.msg} type={toast.type} />
-      <Sidebar page={page} setPage={(p) => { setPage(p); setSelectedReport(null) }} stats={stats} />
+      <Sidebar page={page} setPage={(p) => { setPage(p); setSelectedReport(null) }} stats={{ competitors: competitors.length, changes: changes.length, reports: reports.length }} />
       <main style={{ flex: 1, padding: '28px 36px', overflowY: 'auto', maxHeight: '100vh' }}>
         {page === 'dashboard' && <DashboardPage competitors={competitors} changes={changes} reports={reports} onScan={handleScan} scanning={scanning} onLoadDemo={handleLoadDemo} demoLoading={demoLoading} isNewUser={isNewUser} />}
         {page === 'competitors' && <CompetitorsPage competitors={competitors} onDelete={handleDelete} onScanOne={handleScanOne} setPage={setPage} />}
