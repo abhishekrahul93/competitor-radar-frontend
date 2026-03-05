@@ -44,7 +44,8 @@ class ApiClient {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.detail || data.message || `Request failed: ${res.status}`);
+        const msg = typeof data.detail === 'string' ? data.detail : (data.message || JSON.stringify(data.detail) || `Request failed: ${res.status}`);
+        throw new Error(msg);
       }
       return data;
     } catch (err) {
