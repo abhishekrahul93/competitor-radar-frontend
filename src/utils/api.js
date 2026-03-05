@@ -1,4 +1,4 @@
-const API_BASE = 'https://web-production-4012.up.railway.app';
+const API_BASE = '';
 
 class ApiClient {
   constructor() {
