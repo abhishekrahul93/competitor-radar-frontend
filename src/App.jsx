@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import api from './utils/api'
+import ChartsPage from './components/Charts'
 
 const theme = {
   bg: '#05050d', bgCard: 'rgba(255,255,255,0.02)', border: 'rgba(255,255,255,0.06)',
@@ -25,11 +26,7 @@ function AuthPage({ onLogin }) {
   const [loading, setLoading] = useState(false)
   const handleSubmit = async () => {
     setError(''); setLoading(true)
-    try {
-      if (mode === 'signup') await api.signup(email, password, name)
-      else await api.login(email, password)
-      onLogin()
-    } catch (err) { setError(err.message) }
+    try { if (mode === 'signup') await api.signup(email, password, name); else await api.login(email, password); onLogin() } catch (err) { setError(err.message) }
     setLoading(false)
   }
   return (
@@ -42,12 +39,7 @@ function AuthPage({ onLogin }) {
         </div>
         <div style={{ ...css.card, padding: 28 }}>
           <div style={{ display: 'flex', gap: 4, marginBottom: 24, background: 'rgba(255,255,255,0.03)', borderRadius: 8, padding: 3 }}>
-            {['login', 'signup'].map(m => (
-              <button key={m} onClick={() => { setMode(m); setError('') }}
-                style={{ flex: 1, padding: '8px 0', borderRadius: 6, border: 'none', fontSize: 13, fontWeight: 600, fontFamily: theme.font, cursor: 'pointer', background: mode === m ? theme.accentGlow : 'transparent', color: mode === m ? theme.accent : theme.textMuted }}>
-                {m === 'login' ? 'Log In' : 'Sign Up'}
-              </button>
-            ))}
+            {['login', 'signup'].map(m => (<button key={m} onClick={() => { setMode(m); setError('') }} style={{ flex: 1, padding: '8px 0', borderRadius: 6, border: 'none', fontSize: 13, fontWeight: 600, fontFamily: theme.font, cursor: 'pointer', background: mode === m ? theme.accentGlow : 'transparent', color: mode === m ? theme.accent : theme.textMuted }}>{m === 'login' ? 'Log In' : 'Sign Up'}</button>))}
           </div>
           {mode === 'signup' && <div style={{ marginBottom: 14 }}><label style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1, textTransform: 'uppercase' }}>Name</label><input value={name} onChange={e => setName(e.target.value)} placeholder="Your name" style={css.input} /></div>}
           <div style={{ marginBottom: 14 }}><label style={{ fontSize: 11, fontWeight: 600, color: theme.textMuted, display: 'block', marginBottom: 6, letterSpacing: 1, textTransform: 'uppercase' }}>Email</label><input value={email} onChange={e => setEmail(e.target.value)} placeholder="you@company.com" type="email" style={css.input} /></div>
@@ -61,7 +53,7 @@ function AuthPage({ onLogin }) {
 }
 
 function Sidebar({ page, setPage, stats }) {
-  const nav = [{ id: 'dashboard', icon: '◉', label: 'Dashboard' },{ id: 'competitors', icon: '◎', label: 'Competitors' },{ id: 'changes', icon: '◈', label: 'Changes' },{ id: 'briefs', icon: '◆', label: 'AI Briefs' },{ id: 'add', icon: '＋', label: 'Add New' },{ id: 'settings', icon: '⚙', label: 'Settings' }]
+  const nav = [{ id: 'dashboard', icon: '◉', label: 'Dashboard' },{ id: 'competitors', icon: '◎', label: 'Competitors' },{ id: 'changes', icon: '◈', label: 'Changes' },{ id: 'briefs', icon: '◆', label: 'AI Briefs' },{ id: 'charts', icon: '▣', label: 'Analytics' },{ id: 'add', icon: '＋', label: 'Add New' },{ id: 'settings', icon: '⚙', label: 'Settings' }]
   return (
     <div style={{ width: 230, background: '#08081a', borderRight: `1px solid ${theme.border}`, padding: '24px 14px', display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 36, paddingLeft: 6 }}>
@@ -81,7 +73,7 @@ function Sidebar({ page, setPage, stats }) {
   )
 }
 
-function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoadDemo, demoLoading, isNewUser, debugInfo }) {
+function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoadDemo, demoLoading, isNewUser }) {
   if (isNewUser && competitors.length === 0) {
     return (
       <div>
@@ -106,7 +98,6 @@ function DashboardPage({ competitors, changes, reports, onScan, scanning, onLoad
             <p style={{ fontSize: 13, color: theme.textMuted, margin: '0 0 20px' }}>Load 3 sample competitors with changes and AI briefs.</p>
             <button onClick={onLoadDemo} disabled={demoLoading} style={{ ...css.btnPrimary, padding: '14px 36px', fontSize: 15, opacity: demoLoading ? 0.6 : 1 }}>{demoLoading ? '⏳ Loading...' : '🎯 Load Demo Data'}</button>
           </div>
-          {debugInfo && <div style={{ ...css.card, marginTop: 20, fontSize: 11, color: theme.amber, fontFamily: theme.mono, whiteSpace: 'pre-wrap' }}>DEBUG: {debugInfo}</div>}
         </div>
       </div>
     )
@@ -228,77 +219,29 @@ export default function App() {
   const [selectedReport, setSelectedReport] = useState(null)
   const [demoLoading, setDemoLoading] = useState(false)
   const [isNewUser, setIsNewUser] = useState(true)
-  const [debugInfo, setDebugInfo] = useState('')
 
   const showToast = (msg, type = 'info') => { setToast({ msg, type }); setTimeout(() => setToast({ msg: '', type: '' }), 5000) }
 
   const loadData = async () => {
     let comps = [], chgs = [], rpts = []
-    let debug = []
-    try {
-      const raw = await fetch('/api/competitors/', { headers: { 'Authorization': `Bearer ${api.getToken()}`, 'Content-Type': 'application/json' } })
-      const txt = await raw.text()
-      debug.push(`Competitors: status=${raw.status}, body=${txt.slice(0, 200)}`)
-      comps = JSON.parse(txt)
-      if (!Array.isArray(comps)) comps = []
-    } catch (e) { debug.push(`Competitors ERROR: ${e.message}`) }
-    
-    try {
-      const raw = await fetch('/api/changes/?limit=30&min_significance=0', { headers: { 'Authorization': `Bearer ${api.getToken()}`, 'Content-Type': 'application/json' } })
-      const txt = await raw.text()
-      debug.push(`Changes: status=${raw.status}, body=${txt.slice(0, 200)}`)
-      chgs = JSON.parse(txt)
-      if (!Array.isArray(chgs)) chgs = []
-    } catch (e) { debug.push(`Changes ERROR: ${e.message}`) }
-    
-    try {
-      const raw = await fetch('/api/reports/?limit=20', { headers: { 'Authorization': `Bearer ${api.getToken()}`, 'Content-Type': 'application/json' } })
-      const txt = await raw.text()
-      debug.push(`Reports: status=${raw.status}, body=${txt.slice(0, 200)}`)
-      rpts = JSON.parse(txt)
-      if (!Array.isArray(rpts)) rpts = []
-    } catch (e) { debug.push(`Reports ERROR: ${e.message}`) }
-    
-    setDebugInfo(debug.join('\n'))
-    setCompetitors(comps)
-    setChanges(chgs)
-    setReports(rpts)
+    try { const r = await fetch('/api/competitors/', { headers: { 'Authorization': `Bearer ${api.getToken()}`, 'Content-Type': 'application/json' } }); const t = await r.text(); comps = JSON.parse(t); if (!Array.isArray(comps)) comps = [] } catch (e) {}
+    try { const r = await fetch('/api/changes/?limit=30&min_significance=0', { headers: { 'Authorization': `Bearer ${api.getToken()}`, 'Content-Type': 'application/json' } }); const t = await r.text(); chgs = JSON.parse(t); if (!Array.isArray(chgs)) chgs = [] } catch (e) {}
+    try { const r = await fetch('/api/reports/?limit=20', { headers: { 'Authorization': `Bearer ${api.getToken()}`, 'Content-Type': 'application/json' } }); const t = await r.text(); rpts = JSON.parse(t); if (!Array.isArray(rpts)) rpts = [] } catch (e) {}
+    setCompetitors(comps); setChanges(chgs); setReports(rpts)
     if (comps.length > 0 || chgs.length > 0) setIsNewUser(false)
   }
 
   useEffect(() => { if (authed) loadData() }, [authed])
 
   const handleLogin = () => { setAuthed(true) }
-  const handleLogout = () => { api.logout(); setAuthed(false); setCompetitors([]); setChanges([]); setReports([]); setIsNewUser(true); setDebugInfo('') }
+  const handleLogout = () => { api.logout(); setAuthed(false); setCompetitors([]); setChanges([]); setReports([]); setIsNewUser(true) }
   const handleScan = async () => { setScanning(true); showToast('Scanning...', 'info'); try { const r = await api.scanAll(); showToast(r.message, 'success'); await loadData() } catch (e) { showToast(e.message, 'error') } setScanning(false) }
   const handleLoadDemo = async () => {
     setDemoLoading(true)
-    try {
-      const r = await api.loadDemo()
-      showToast(r.message || 'Demo loaded', r.loaded ? 'success' : 'info')
-      setIsNewUser(false)
-      await loadData()
-    } catch (e) { showToast(e.message, 'error') }
+    try { const r = await api.loadDemo(); showToast(r.message || 'Demo loaded', r.loaded ? 'success' : 'info'); setIsNewUser(false); await loadData() } catch (e) { showToast(e.message, 'error') }
     setDemoLoading(false)
   }
   const handleScanOne = async (id) => { showToast('Scanning...', 'info'); try { const r = await api.scanOne(id); showToast(`${r.competitor}: ${r.changes_found} changes`, 'success'); await loadData() } catch (e) { showToast(e.message, 'error') } }
   const handleDelete = async (id) => { try { await api.deleteCompetitor(id); showToast('Removed', 'success'); await loadData() } catch (e) { showToast(e.message, 'error') } }
 
-  if (!authed) return <AuthPage onLogin={handleLogin} />
-
-  return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: theme.bg, fontFamily: theme.font }}>
-      <Toast msg={toast.msg} type={toast.type} />
-      <Sidebar page={page} setPage={(p) => { setPage(p); setSelectedReport(null) }} stats={{ competitors: competitors.length, changes: changes.length, reports: reports.length }} />
-      <main style={{ flex: 1, padding: '28px 36px', overflowY: 'auto', maxHeight: '100vh' }}>
-        {page === 'dashboard' && <DashboardPage competitors={competitors} changes={changes} reports={reports} onScan={handleScan} scanning={scanning} onLoadDemo={handleLoadDemo} demoLoading={demoLoading} isNewUser={isNewUser} debugInfo={debugInfo} />}
-        {page === 'competitors' && <CompetitorsPage competitors={competitors} onDelete={handleDelete} onScanOne={handleScanOne} setPage={setPage} />}
-        {page === 'changes' && <ChangesPage changes={changes} setPage={setPage} setSelectedReport={setSelectedReport} />}
-        {page === 'briefs' && <BriefsPage reports={reports} selectedReport={selectedReport} setSelectedReport={setSelectedReport} />}
-        {page === 'add' && <AddPage onAdd={loadData} />}
-        {page === 'settings' && <SettingsPage onLogout={handleLogout} />}
-        <div style={{ textAlign: 'center', color: theme.textDim, fontSize: 11, marginTop: 40, paddingBottom: 20, fontFamily: theme.mono }}>Competitor Radar AI · Built by Abhishek R.</div>
-      </main>
-    </div>
-  )
-}
+  if (!
