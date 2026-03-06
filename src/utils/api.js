@@ -1,5 +1,4 @@
 ﻿const API_BASE = '';
-
 class ApiClient {
   constructor() { this.base = API_BASE; this.token = localStorage.getItem('radar_token') || null; }
   setToken(t) { this.token = t; if (t) localStorage.setItem('radar_token', t); else localStorage.removeItem('radar_token'); }
@@ -31,7 +30,12 @@ class ApiClient {
   async setSlackWebhook(url) { return this.request('POST', '/api/auth/slack-webhook', { webhook_url: url }); }
   exportBriefUrl(id) { return `/api/export/brief/${id}?token=${this.getToken()}`; }
   exportAllUrl() { return `/api/export/all?token=${this.getToken()}`; }
+  async getSocialSummary() { return this.request('GET', '/api/social/summary'); }
+  async getCompetitorPosts(id, platform=null) { let u=`/api/social/posts/${id}`; if(platform) u+=`?platform=${platform}`; return this.request('GET',u); }
+  async scanSocial(id) { return this.request('POST', `/api/social/scan/${id}`); }
+  async scanAllSocial() { return this.request('POST', '/api/social/scan-all'); }
+  async getSocialSettings(id) { return this.request('GET', `/api/social/settings/${id}`); }
+  async updateSocialSettings(id, data) { return this.request('PUT', `/api/social/settings/${id}`, data); }
 }
-
 export const api = new ApiClient();
 export default api;
