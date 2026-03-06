@@ -187,12 +187,42 @@ function AddPage({ onAdd }) {
   </div>)
 }
 
-function SettingsPage({ onLogout }) {
+function SettingsPage({ onLogout, showToast }) {
   const user = JSON.parse(localStorage.getItem('radar_user') || '{}')
+  const [upgrading, setUpgrading] = useState(null)
+  const handleUpgrade = async (plan) => {
+    setUpgrading(plan)
+    try {
+      const result = await api.createCheckout(plan)
+      if (result.checkout_url) window.location.href = result.checkout_url
+    } catch (e) { showToast(e.message, 'error') }
+    setUpgrading(null)
+  }
+  const plans = [
+    { id: 'free', name: 'Starter', price: 'Free', period: 'forever', features: ['5 competitors', 'Manual scans', 'Basic detection', 'Dashboard'], color: theme.textMuted, current: user.plan === 'free' || !user.plan },
+    { id: 'pro', name: 'Pro', price: '$29', period: '/month', features: ['25 competitors', 'Auto-scan 12h', 'AI briefs', 'Email alerts', 'Priority support'], color: theme.accent, current: user.plan === 'pro', popular: true },
+    { id: 'team', name: 'Team', price: '$79', period: '/month', features: ['Unlimited competitors', 'Auto-scan 6h', 'Weekly reports', 'Slack integration', 'API access', 'Team dashboard'], color: theme.cyan, current: user.plan === 'team' },
+  ]
   return (<div>
     <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', marginBottom: 24 }}>Settings</h1>
-    <div style={{ ...css.card, maxWidth: 500, marginBottom: 16 }}><h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 12 }}>Account</h3><div style={{ fontSize: 13, color: theme.textMuted }}>Email: {user.email || 'N/A'}</div><div style={{ fontSize: 13, color: theme.textMuted }}>Plan: {user.plan || 'free'}</div></div>
-    <div style={{ ...css.card, maxWidth: 500 }}><h3 style={{ fontSize: 14, fontWeight: 700, color: theme.red, marginBottom: 12 }}>Log Out</h3><button onClick={onLogout} style={{ ...css.btnGhost, color: theme.red }}>Log Out</button></div>
+    <div style={{ ...css.card, maxWidth: 500, marginBottom: 20 }}><h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', marginBottom: 12 }}>Account</h3><div style={{ fontSize: 13, color: theme.textMuted, marginBottom: 6 }}>Email: {user.email || 'N/A'}</div><div style={{ fontSize: 13, color: theme.textMuted }}>Plan: <span style={{ color: theme.accent, fontWeight: 700, textTransform: 'uppercase' }}>{user.plan || 'free'}</span></div></div>
+    <h2 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 16 }}>Upgrade Plan</h2>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 24 }}>
+      {plans.map(p => (
+        <div key={p.id} style={{ ...css.card, padding: 24, borderColor: p.popular ? 'rgba(99,102,241,0.3)' : theme.border, background: p.popular ? 'rgba(99,102,241,0.04)' : theme.bgCard, position: 'relative' }}>
+          {p.popular && <div style={{ position: 'absolute', top: -10, left: '50%', transform: 'translateX(-50%)', background: theme.accent, color: '#fff', fontSize: 9, fontWeight: 700, padding: '2px 10px', borderRadius: 20, letterSpacing: 1 }}>POPULAR</div>}
+          <div style={{ fontSize: 13, fontWeight: 600, color: theme.textMuted, marginBottom: 6 }}>{p.name}</div>
+          <div style={{ marginBottom: 16 }}><span style={{ fontSize: 36, fontWeight: 900, color: '#fff' }}>{p.price}</span><span style={{ fontSize: 13, color: theme.textMuted }}>{p.period}</span></div>
+          <div style={{ marginBottom: 18 }}>{p.features.map((f,i) => (<div key={i} style={{ display: 'flex', gap: 6, alignItems: 'center', padding: '4px 0', fontSize: 12, color: theme.text }}><span style={{ color: theme.green, fontSize: 11 }}>✓</span>{f}</div>))}</div>
+          {p.current ? (
+            <div style={{ padding: '10px 0', textAlign: 'center', borderRadius: 8, border: `1px solid ${theme.border}`, color: theme.green, fontSize: 13, fontWeight: 600 }}>Current Plan</div>
+          ) : p.id === 'free' ? null : (
+            <button onClick={() => handleUpgrade(p.id)} disabled={upgrading === p.id} style={{ ...css.btnPrimary, width: '100%', background: p.popular ? `linear-gradient(135deg, ${theme.accent}, #4f46e5)` : 'transparent', border: p.popular ? 'none' : `1px solid ${theme.border}`, color: p.popular ? '#fff' : theme.text, opacity: upgrading === p.id ? 0.6 : 1 }}>{upgrading === p.id ? 'Redirecting...' : `Upgrade to ${p.name}`}</button>
+          )}
+        </div>
+      ))}
+    </div>
+    <div style={{ ...css.card, maxWidth: 500, borderColor: 'rgba(239,68,68,0.15)' }}><h3 style={{ fontSize: 14, fontWeight: 700, color: theme.red, marginBottom: 12 }}>Log Out</h3><button onClick={onLogout} style={{ ...css.btnGhost, color: theme.red }}>Log Out</button></div>
   </div>)
 }
 
@@ -241,7 +271,7 @@ export default function App() {
         {page==='briefs' && <BriefsPage reports={reports} selectedReport={selectedReport} setSelectedReport={setSelectedReport} />}
         {page==='charts' && <ChartsPage competitors={competitors} changes={changes} reports={reports} />}
         {page==='add' && <AddPage onAdd={loadData} />}
-        {page==='settings' && <SettingsPage onLogout={handleLogout} />}
+        {page==='settings' && <SettingsPage onLogout={handleLogout} showToast={showToast} />}
         <div style={{ textAlign:'center',color:theme.textDim,fontSize:11,marginTop:40,paddingBottom:20,fontFamily:theme.mono }}>Competitor Radar AI</div>
       </main>
     </div>
