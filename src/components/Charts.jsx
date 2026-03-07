@@ -1,4 +1,5 @@
 import React from 'react'
+import { SkeletonDashboard, ErrorCard, EmptyState } from './UIComponents'
 
 const theme = {
   bg: '#05050d', bgCard: 'rgba(255,255,255,0.02)', border: 'rgba(255,255,255,0.06)',
@@ -50,7 +51,25 @@ function TimelineItem({ change, idx }) {
   )
 }
 
-export default function ChartsPage({ competitors, changes, reports }) {
+export default function ChartsPage({ competitors, changes, reports, loading, error, onRetry }) {
+  const css = { card: { background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 14, padding: 20 } }
+
+  /* ── Loading state ─────────────────────────────────────── */
+  if (loading) return <SkeletonDashboard />
+
+  /* ── Error state ───────────────────────────────────────── */
+  if (error) {
+    return (
+      <div>
+        <div style={{ marginBottom: 28 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 800, color: '#fff', margin: '0 0 4px' }}>Analytics & Trends</h1>
+          <p style={{ color: theme.textMuted, fontSize: 13, margin: 0 }}>Visual intelligence across your competitive landscape</p>
+        </div>
+        <ErrorCard title="Failed to load analytics" message={error} onRetry={onRetry} />
+      </div>
+    )
+  }
+
   // Compute stats
   const byCompetitor = {}
   const byCategory = {}
@@ -74,8 +93,6 @@ export default function ChartsPage({ competitors, changes, reports }) {
   const catColors = { pricing: theme.red, hiring: theme.amber, messaging: theme.cyan, content: theme.green, conversion: theme.accent, seo: '#a78bfa', other: theme.textMuted }
   const compColors = [theme.accent, theme.cyan, theme.red, theme.amber, theme.green, '#a78bfa']
 
-  const css = { card: { background: theme.bgCard, border: `1px solid ${theme.border}`, borderRadius: 14, padding: 20 } }
-
   return (
     <div>
       <div style={{ marginBottom: 28 }}>
@@ -84,10 +101,11 @@ export default function ChartsPage({ competitors, changes, reports }) {
       </div>
 
       {changes.length === 0 ? (
-        <div style={{ ...css.card, textAlign: 'center', padding: 40 }}>
-          <div style={{ fontSize: 36, marginBottom: 12 }}>📊</div>
-          <p style={{ color: theme.textMuted }}>No data yet. Load demo data or run a scan to see analytics.</p>
-        </div>
+        <EmptyState
+          icon="📊"
+          title="No analytics data yet"
+          message="Load demo data or run a scan to see analytics and trends across your competitive landscape."
+        />
       ) : (
         <>
           {/* Summary Cards */}
@@ -100,7 +118,6 @@ export default function ChartsPage({ competitors, changes, reports }) {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
-            {/* Changes by Competitor */}
             <div style={css.card}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 16px' }}>Changes by Competitor</h3>
               {Object.entries(byCompetitor).sort((a, b) => b[1] - a[1]).map(([name, count], i) => (
@@ -108,7 +125,6 @@ export default function ChartsPage({ competitors, changes, reports }) {
               ))}
             </div>
 
-            {/* Changes by Category */}
             <div style={css.card}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 16px' }}>Changes by Category</h3>
               {Object.entries(byCategory).sort((a, b) => b[1] - a[1]).map(([cat, count]) => (
@@ -118,7 +134,6 @@ export default function ChartsPage({ competitors, changes, reports }) {
           </div>
 
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, marginBottom: 24 }}>
-            {/* Threat Distribution */}
             <div style={css.card}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 16px' }}>Threat Distribution</h3>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 8 }}>
@@ -137,7 +152,6 @@ export default function ChartsPage({ competitors, changes, reports }) {
               </div>
             </div>
 
-            {/* Changes by Page Type */}
             <div style={css.card}>
               <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 16px' }}>Changes by Page Type</h3>
               <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
@@ -155,7 +169,6 @@ export default function ChartsPage({ competitors, changes, reports }) {
             </div>
           </div>
 
-          {/* Timeline */}
           <div style={css.card}>
             <h3 style={{ fontSize: 14, fontWeight: 700, color: '#fff', margin: '0 0 16px' }}>Change Timeline</h3>
             {changes.slice(0, 10).map((c, i) => (
