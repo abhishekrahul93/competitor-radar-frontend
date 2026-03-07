@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { SkeletonDashboard, ErrorCard, Spinner } from './UIComponents';
 
 const th = {bg:'#05050d',bgCard:'rgba(255,255,255,0.02)',border:'rgba(255,255,255,0.06)',text:'#e2e8f0',textMuted:'#64748b',textDim:'#475569',accent:'#6366f1',accentGlow:'rgba(99,102,241,0.15)',red:'#ef4444',amber:'#f59e0b',green:'#10b981',cyan:'#06b6d4',font:"'Sora', sans-serif",mono:"'IBM Plex Mono', monospace"};
 const card = {background:th.bgCard,border:`1px solid ${th.border}`,borderRadius:14,padding:20};
@@ -15,7 +16,17 @@ function MiniBar({data, color, height=40}) {
   );
 }
 
-function StatCard({label, value, sub, color, icon, trend, sparkData}) {
+function StatCard({label, value, sub, color, icon, trend, sparkData, loading: isLoading}) {
+  if (isLoading) {
+    return (
+      <div style={{...card,padding:'18px 16px',position:'relative',overflow:'hidden'}}>
+        <div style={{background:'linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.03) 75%)',backgroundSize:'200% 100%',animation:'ui-shimmer 1.5s ease-in-out infinite',height:10,width:80,borderRadius:6,marginBottom:12}} />
+        <div style={{background:'linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.03) 75%)',backgroundSize:'200% 100%',animation:'ui-shimmer 1.5s ease-in-out infinite',height:28,width:50,borderRadius:6,marginBottom:8}} />
+        <div style={{background:'linear-gradient(90deg,rgba(255,255,255,0.03) 25%,rgba(255,255,255,0.06) 50%,rgba(255,255,255,0.03) 75%)',backgroundSize:'200% 100%',animation:'ui-shimmer 1.5s ease-in-out infinite',height:8,width:100,borderRadius:4}} />
+        <style>{`@keyframes ui-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+      </div>
+    );
+  }
   return (
     <div style={{...card,padding:'18px 16px',position:'relative',overflow:'hidden'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
@@ -45,9 +56,9 @@ function ThreatMeter({changes}) {
     <div style={card}>
       <h3 style={{fontSize:14,fontWeight:700,color:'#fff',margin:'0 0 14px'}}>Threat Distribution</h3>
       <div style={{display:'flex',gap:4,height:8,borderRadius:4,overflow:'hidden',marginBottom:16}}>
-        <div style={{width:`${(high/total)*100}%`,background:th.red,borderRadius:4,minWidth:high?4:0}}/>
-        <div style={{width:`${(med/total)*100}%`,background:th.amber,borderRadius:4,minWidth:med?4:0}}/>
-        <div style={{width:`${(low/total)*100}%`,background:th.green,borderRadius:4,minWidth:low?4:0}}/>
+        <div style={{width:`${(high/total)*100}%`,background:th.red,borderRadius:4,minWidth:high?4:0,transition:'width 0.6s ease'}}/>
+        <div style={{width:`${(med/total)*100}%`,background:th.amber,borderRadius:4,minWidth:med?4:0,transition:'width 0.6s ease'}}/>
+        <div style={{width:`${(low/total)*100}%`,background:th.green,borderRadius:4,minWidth:low?4:0,transition:'width 0.6s ease'}}/>
       </div>
       <div style={{display:'flex',justifyContent:'space-between'}}>
         {[{l:'Critical',v:high,c:th.red},{l:'Medium',v:med,c:th.amber},{l:'Low',v:low,c:th.green}].map((t,i) => (
@@ -63,12 +74,9 @@ function ThreatMeter({changes}) {
 
 function CompetitorLeaderboard({competitors, changes}) {
   const compChanges = {};
-  changes.forEach(c => {
-    compChanges[c.competitor_name] = (compChanges[c.competitor_name] || 0) + 1;
-  });
+  changes.forEach(c => { compChanges[c.competitor_name] = (compChanges[c.competitor_name] || 0) + 1; });
   const sorted = competitors.map(c => ({
-    ...c,
-    changeCount: compChanges[c.name] || 0,
+    ...c, changeCount: compChanges[c.name] || 0,
     avgSig: changes.filter(ch => ch.competitor_name === c.name).reduce((a, ch) => a + (ch.significance || 0), 0) / (compChanges[c.name] || 1)
   })).sort((a, b) => b.changeCount - a.changeCount);
 
@@ -107,8 +115,7 @@ function RecentTimeline({changes, reports}) {
     const hrs = Math.floor(diff / 3600000);
     if (hrs < 1) return 'just now';
     if (hrs < 24) return hrs + 'h ago';
-    const days = Math.floor(hrs / 24);
-    return days + 'd ago';
+    return Math.floor(hrs / 24) + 'd ago';
   };
 
   return (
@@ -144,19 +151,12 @@ function QuickInsights({competitors, changes, reports}) {
     if (top) insights.push({icon:'🔥',text:`${top[0]} is most active with ${top[1]} changes`,color:th.red});
   }
   const highThreats = changes.filter(c => c.significance >= 0.8);
-  if (highThreats.length > 0) {
-    insights.push({icon:'⚠️',text:`${highThreats.length} high-priority changes need attention`,color:th.amber});
-  }
-  if (reports.length > 0) {
-    insights.push({icon:'📊',text:`${reports.length} AI briefs available for review`,color:th.cyan});
-  }
+  if (highThreats.length > 0) insights.push({icon:'⚠️',text:`${highThreats.length} high-priority changes need attention`,color:th.amber});
+  if (reports.length > 0) insights.push({icon:'📊',text:`${reports.length} AI briefs available for review`,color:th.cyan});
   const pricingChanges = changes.filter(c => c.page_type === 'pricing');
-  if (pricingChanges.length > 0) {
-    insights.push({icon:'💰',text:`${pricingChanges.length} pricing changes detected`,color:th.green});
-  }
-  if (insights.length === 0) {
-    insights.push({icon:'🎯',text:'Run a scan to start getting competitive insights!',color:th.accent});
-  }
+  if (pricingChanges.length > 0) insights.push({icon:'💰',text:`${pricingChanges.length} pricing changes detected`,color:th.green});
+  if (insights.length === 0) insights.push({icon:'🎯',text:'Run a scan to start getting competitive insights!',color:th.accent});
+
   return (
     <div style={card}>
       <h3 style={{fontSize:14,fontWeight:700,color:'#fff',margin:'0 0 14px'}}>Quick Insights</h3>
@@ -170,7 +170,25 @@ function QuickInsights({competitors, changes, reports}) {
   );
 }
 
-export default function Dashboard({competitors, changes, reports, onScan, scanning, onLoadDemo, demoLoading, isNewUser}) {
+export default function Dashboard({competitors, changes, reports, onScan, scanning, onLoadDemo, demoLoading, isNewUser, loading, error, onRetry}) {
+
+  /* ── Loading state: show skeleton dashboard ──────────────── */
+  if (loading) {
+    return <SkeletonDashboard />;
+  }
+
+  /* ── Error state: show error with retry ──────────────────── */
+  if (error) {
+    return (
+      <ErrorCard
+        title="Failed to load dashboard"
+        message={typeof error === 'string' ? error : 'Could not connect to the server. Please check your connection and try again.'}
+        onRetry={onRetry}
+      />
+    );
+  }
+
+  /* ── New user welcome state ──────────────────────────────── */
   if (isNewUser && competitors.length === 0) {
     return (
       <div>
@@ -192,24 +210,26 @@ export default function Dashboard({competitors, changes, reports, onScan, scanni
           </div>
           <div style={{...card,textAlign:'center',padding:30,borderColor:'rgba(99,102,241,0.2)',background:'rgba(99,102,241,0.03)'}}>
             <h3 style={{fontSize:18,fontWeight:700,color:'#fff',margin:'0 0 20px'}}>Ready?</h3>
-            <button onClick={onLoadDemo} disabled={demoLoading} style={{padding:'14px 36px',borderRadius:10,border:'none',background:`linear-gradient(135deg, ${th.accent}, #4f46e5)`,color:'white',fontSize:15,fontWeight:600,fontFamily:th.font,cursor:'pointer',opacity:demoLoading?0.6:1}}>{demoLoading?'Loading...':'🎯 Load Demo Data'}</button>
+            <button onClick={onLoadDemo} disabled={demoLoading} style={{
+              display:'inline-flex',alignItems:'center',gap:8,
+              padding:'14px 36px',borderRadius:10,border:'none',
+              background:`linear-gradient(135deg, ${th.accent}, #4f46e5)`,color:'white',
+              fontSize:15,fontWeight:600,fontFamily:th.font,cursor:'pointer',
+              opacity:demoLoading?0.6:1
+            }}>
+              {demoLoading && <Spinner size={16} color="#fff" />}
+              {demoLoading?'Loading Demo...':'🎯 Load Demo Data'}
+            </button>
           </div>
         </div>
       </div>
     );
   }
 
-  const weekChanges = changes.filter(c => {
-    if (!c.detected_at) return false;
-    return (Date.now() - new Date(c.detected_at).getTime()) < 7*24*3600000;
-  });
-
+  /* ── Main dashboard ──────────────────────────────────────── */
+  const weekChanges = changes.filter(c => c.detected_at && (Date.now() - new Date(c.detected_at).getTime()) < 7*24*3600000);
   const dayBuckets = Array(7).fill(0);
-  weekChanges.forEach(c => {
-    const daysAgo = Math.floor((Date.now() - new Date(c.detected_at).getTime()) / 86400000);
-    if (daysAgo < 7) dayBuckets[6 - daysAgo]++;
-  });
-
+  weekChanges.forEach(c => { const d = Math.floor((Date.now() - new Date(c.detected_at).getTime()) / 86400000); if (d < 7) dayBuckets[6 - d]++; });
   const avgSig = changes.length > 0 ? (changes.reduce((a,c) => a + (c.significance||0), 0) / changes.length) : 0;
 
   return (
@@ -219,7 +239,15 @@ export default function Dashboard({competitors, changes, reports, onScan, scanni
           <h1 style={{fontSize:22,fontWeight:800,color:'#fff',margin:'0 0 4px'}}>Intelligence Dashboard</h1>
           <p style={{color:th.textMuted,fontSize:13,margin:0}}>Real-time competitive signals</p>
         </div>
-        <button onClick={onScan} disabled={scanning} style={{padding:'12px 28px',borderRadius:10,border:'none',background:`linear-gradient(135deg, ${th.accent}, #4f46e5)`,color:'white',fontSize:14,fontWeight:600,fontFamily:th.font,cursor:'pointer',opacity:scanning?0.6:1}}>{scanning?'Scanning...':'🔍 Scan Now'}</button>
+        <button onClick={onScan} disabled={scanning} style={{
+          display:'inline-flex',alignItems:'center',gap:8,
+          padding:'12px 28px',borderRadius:10,border:'none',
+          background:`linear-gradient(135deg, ${th.accent}, #4f46e5)`,color:'white',
+          fontSize:14,fontWeight:600,fontFamily:th.font,cursor:'pointer',
+          opacity:scanning?0.6:1
+        }}>
+          {scanning ? <><Spinner size={16} color="#fff" /> Scanning...</> : '🔍 Scan Now'}
+        </button>
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'repeat(4, 1fr)',gap:14,marginBottom:20}}>
