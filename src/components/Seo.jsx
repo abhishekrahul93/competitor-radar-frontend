@@ -1,4 +1,5 @@
-﻿import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
+import { PageLoader, ErrorCard, Spinner, SkeletonList } from './UIComponents'
 
 const theme = {bg:'#05050d',bgCard:'rgba(255,255,255,0.02)',border:'rgba(255,255,255,0.06)',text:'#e2e8f0',textMuted:'#64748b',textDim:'#475569',accent:'#6366f1',red:'#ef4444',amber:'#f59e0b',green:'#10b981',cyan:'#06b6d4',mono:"'IBM Plex Mono', monospace"}
 const css = {card:{background:theme.bgCard,border:`1px solid ${theme.border}`,borderRadius:14,padding:20}}
@@ -8,30 +9,78 @@ function ScoreCircle({score,size=60}){const color=score>=80?theme.green:score>=6
 export default function SeoPage({competitors}){
   const[data,setData]=useState([])
   const[loading,setLoading]=useState(true)
+  const[error,setError]=useState(null)
   const[selected,setSelected]=useState(null)
   const[detail,setDetail]=useState(null)
-  
-  useEffect(()=>{
-    const token=localStorage.getItem('radar_token')
-    fetch('/api/seo/overview',{headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}})
-    .then(r=>r.json()).then(d=>{if(Array.isArray(d))setData(d);setLoading(false)}).catch(()=>setLoading(false))
-  },[])
-  
+  const[detailLoading,setDetailLoading]=useState(false)
+  const[detailError,setDetailError]=useState(null)
+
+  const loadData = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const token=localStorage.getItem('radar_token')
+      const r = await fetch('/api/seo/overview',{headers:{'Authorization':'Bearer '+token,'Content-Type':'application/json'}})
+      if (!r.ok) throw new Error(`Server error (${r.status})`)
+      const d = await r.json()
+      if(Array.isArray(d)) setData(d)
+    } catch(e) {
+      setError(e.message || 'Failed to load SEO data')
+    }
+    setLoading(false)
+  }
+
+  useEffect(()=>{ loadData() },[])
+
   const loadDetail=async(comp)=>{
     const cObj=competitors.find(c=>c.name===comp.competitor)
     if(!cObj)return
     setSelected(comp.competitor)
-    const token=localStorage.getItem('radar_token')
-    try{const r=await fetch('/api/seo/analyze/'+cObj.id,{headers:{'Authorization':'Bearer '+token}});const d=await r.json();setDetail(d)}catch(e){}
+    setDetailLoading(true)
+    setDetailError(null)
+    setDetail(null)
+    try {
+      const token=localStorage.getItem('radar_token')
+      const r=await fetch('/api/seo/analyze/'+cObj.id,{headers:{'Authorization':'Bearer '+token}})
+      if (!r.ok) throw new Error(`Failed to load analysis (${r.status})`)
+      setDetail(await r.json())
+    } catch(e) {
+      setDetailError(e.message || 'Failed to load SEO analysis')
+    }
+    setDetailLoading(false)
   }
-  
-  if(loading)return(<div style={{padding:40,textAlign:'center',color:theme.textMuted}}>Loading SEO data...</div>)
-  
-  if(detail&&selected){
+
+  /* ── Loading state ─────────────────────────────────────── */
+  if(loading) return <SkeletonList rows={4} />
+
+  /* ── Error state ───────────────────────────────────────── */
+  if(error) return (
+    <div>
+      <h1 style={{fontSize:22,fontWeight:800,color:'#fff',margin:'0 0 4px'}}>SEO Tracker</h1>
+      <p style={{color:theme.textMuted,fontSize:13,marginBottom:24}}>SEO health scores across competitors</p>
+      <ErrorCard title="Failed to load SEO data" message={error} onRetry={loadData} />
+    </div>
+  )
+
+  /* ── Detail view ───────────────────────────────────────── */
+  if(selected){
     return(<div>
-      <button onClick={()=>{setDetail(null);setSelected(null)}} style={{padding:'6px 16px',borderRadius:8,border:`1px solid ${theme.border}`,background:'transparent',color:theme.textMuted,fontSize:12,cursor:'pointer',marginBottom:20,fontFamily:"'Sora',sans-serif"}}>Back</button>
-      <h1 style={{fontSize:22,fontWeight:800,color:'#fff',marginBottom:24}}>{selected} - SEO Analysis</h1>
-      {(detail.seo_analysis||[]).map((page,i)=>(<div key={i} style={{...css.card,marginBottom:16}}>
+      <button onClick={()=>{setDetail(null);setSelected(null);setDetailError(null)}} style={{padding:'6px 16px',borderRadius:8,border:`1px solid ${theme.border}`,background:'transparent',color:theme.textMuted,fontSize:12,cursor:'pointer',marginBottom:20,fontFamily:"'Sora',sans-serif"}}>← Back</button>
+      <h1 style={{fontSize:22,fontWeight:800,color:'#fff',marginBottom:24}}>{selected} — SEO Analysis</h1>
+
+      {/* Detail loading */}
+      {detailLoading && <PageLoader message={`Analyzing ${selected}...`} />}
+
+      {/* Detail error */}
+      {detailError && !detailLoading && (
+        <ErrorCard title="Analysis failed" message={detailError} onRetry={() => {
+          const comp = data.find(d => d.competitor === selected)
+          if (comp) loadDetail(comp)
+        }} />
+      )}
+
+      {/* Detail content */}
+      {detail && !detailLoading && (detail.seo_analysis||[]).map((page,i)=>(<div key={i} style={{...css.card,marginBottom:16}}>
         <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:16}}>
           <div><div style={{fontSize:15,fontWeight:700,color:'#fff'}}>{page.page_type}</div><div style={{fontSize:11,color:theme.accent,fontFamily:theme.mono}}>{page.url}</div></div>
           <ScoreCircle score={page.overall_score} size={50}/>
@@ -43,13 +92,14 @@ export default function SeoPage({competitors}){
       </div>))}
     </div>)
   }
-  
+
+  /* ── Overview list ──────────────────────────────────────── */
   return(<div>
     <h1 style={{fontSize:22,fontWeight:800,color:'#fff',margin:'0 0 4px'}}>SEO Tracker</h1>
     <p style={{color:theme.textMuted,fontSize:13,marginBottom:24}}>SEO health scores across competitors</p>
-    {data.length===0&&<div style={{...css.card,textAlign:'center',padding:40}}><p style={{color:theme.textMuted}}>No SEO data yet. Run a scan first to generate SEO analysis.</p></div>}
+    {data.length===0&&<div style={{...css.card,textAlign:'center',padding:40}}><div style={{fontSize:36,marginBottom:12}}>🔍</div><p style={{color:theme.textMuted}}>No SEO data yet. Run a scan first to generate SEO analysis.</p></div>}
     <div style={{display:'grid',gap:12}}>
-      {data.map((comp,i)=>(<div key={i} onClick={()=>loadDetail(comp)} style={{...css.card,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+      {data.map((comp,i)=>(<div key={i} onClick={()=>loadDetail(comp)} style={{...css.card,cursor:'pointer',display:'flex',alignItems:'center',justifyContent:'space-between',transition:'border-color 0.2s, background 0.2s'}}>
         <div style={{display:'flex',alignItems:'center',gap:16}}>
           <ScoreCircle score={comp.overall_score}/>
           <div><div style={{fontSize:15,fontWeight:700,color:'#fff'}}>{comp.competitor}</div><div style={{fontSize:11,color:theme.accent,fontFamily:theme.mono}}>{comp.url?.replace('https://','')}</div><div style={{fontSize:11,color:theme.textDim,marginTop:4}}>{comp.word_count} words</div></div>
