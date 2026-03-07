@@ -1,4 +1,5 @@
-﻿import { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
+import { SkeletonDashboard, ErrorCard, ErrorBanner, Spinner, LoadingButton, EmptyState } from './UIComponents';
 
 const PLATFORM_CONFIG = {
   twitter: { label: "X / Twitter", color: "#1DA1F2" },
@@ -17,14 +18,19 @@ const apiCall = async (url, options = {}) => {
     headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
     ...options,
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(text || `Request failed (${res.status})`);
+  }
   return res.json();
 };
 
 export default function Social({ competitors = [] }) {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [scanning, setScanning] = useState(false);
+  const [scanError, setScanError] = useState('');
   const [scanningId, setScanningId] = useState(null);
   const [filterPlatform, setFilterPlatform] = useState("all");
   const [filterCompetitor, setFilterCompetitor] = useState("all");
@@ -36,8 +42,9 @@ export default function Social({ competitors = [] }) {
 
   const load = async () => {
     setLoading(true);
+    setError(null);
     try { const data = await apiCall("/api/social/summary"); setSummary(data); }
-    catch (e) { console.error(e); }
+    catch (e) { setError(e.message || 'Failed to load social data'); }
     setLoading(false);
   };
 
@@ -45,15 +52,16 @@ export default function Social({ competitors = [] }) {
 
   const handleScanAll = async () => {
     setScanning(true);
+    setScanError('');
     try { await apiCall("/api/social/scan-all", { method: "POST" }); await load(); }
-    catch (e) { console.error(e); }
+    catch (e) { setScanError('Scan failed — ' + (e.message || 'please try again')); }
     setScanning(false);
   };
 
   const handleScanOne = async (id) => {
     setScanningId(id);
     try { await apiCall(`/api/social/scan/${id}`, { method: "POST" }); await load(); }
-    catch (e) { console.error(e); }
+    catch (e) { setScanError('Scan failed for this competitor'); }
     setScanningId(null);
   };
 
@@ -70,8 +78,9 @@ export default function Social({ competitors = [] }) {
   const saveSettings = async () => {
     if (!settingsTarget) return;
     setSettingsSaving(true);
+    setSettingsMsg("");
     try { await apiCall(`/api/social/settings/${settingsTarget.id}`, { method: "PUT", body: JSON.stringify(settingsForm) }); setSettingsMsg("Saved!"); }
-    catch { setSettingsMsg("Failed"); }
+    catch { setSettingsMsg("Failed to save — please try again"); }
     setSettingsSaving(false);
   };
 
@@ -84,7 +93,7 @@ export default function Social({ competitors = [] }) {
   const s = {
     wrap: { padding: 24, fontFamily: "'Sora', sans-serif", color: "#e2e8f0", maxWidth: 1100 },
     card: { background: "linear-gradient(135deg,#1e293b,#0f172a)", border: "1px solid #334155", borderRadius: 12, padding: "18px 20px" },
-    tab: (a) => ({ padding: "10px 20px", cursor: "pointer", fontWeight: 600, fontSize: 14, color: a ? "#6366f1" : "#64748b", background: "none", border: "none", borderBottom: a ? "2px solid #6366f1" : "2px solid transparent" }),
+    tab: (a) => ({ padding: "10px 20px", cursor: "pointer", fontWeight: 600, fontSize: 14, color: a ? "#6366f1" : "#64748b", background: "none", border: "none", borderBottom: a ? "2px solid #6366f1" : "2px solid transparent", fontFamily: "'Sora',sans-serif" }),
     select: { background: "#1e293b", border: "1px solid #334155", color: "#e2e8f0", padding: "8px 14px", borderRadius: 8, fontSize: 13 },
     post: { background: "#1e293b", border: "1px solid #334155", borderRadius: 12, padding: "16px 20px", marginBottom: 12 },
     badge: (color, bg) => ({ background: bg, color, border: `1px solid ${color}44`, padding: "3px 10px", borderRadius: 20, fontSize: 11, fontWeight: 600 }),
@@ -93,7 +102,27 @@ export default function Social({ competitors = [] }) {
     input: { width: "100%", background: "#0f172a", border: "1px solid #334155", color: "#e2e8f0", padding: "10px 14px", borderRadius: 8, fontSize: 13, fontFamily: "'Sora',sans-serif", boxSizing: "border-box", marginTop: 6 },
   };
 
-  if (loading) return <div style={s.wrap}><p style={{ color: "#94a3b8", textAlign: "center", marginTop: 60 }}>Loading...</p></div>;
+  /* ── Loading state ─────────────────────────────────────── */
+  if (loading) {
+    return (
+      <div style={s.wrap}>
+        <SkeletonDashboard />
+      </div>
+    );
+  }
+
+  /* ── Error state ───────────────────────────────────────── */
+  if (error) {
+    return (
+      <div style={s.wrap}>
+        <div style={{ marginBottom: 24 }}>
+          <h1 style={{ fontSize: 22, fontWeight: 700, color: "#f8fafc", margin: 0 }}>Social Monitor</h1>
+          <p style={{ color: "#94a3b8", fontSize: 13, marginTop: 4 }}>Track competitor activity on Twitter/X and Reddit</p>
+        </div>
+        <ErrorCard title="Failed to load social data" message={error} onRetry={load} />
+      </div>
+    );
+  }
 
   return (
     <div style={s.wrap}>
@@ -102,10 +131,14 @@ export default function Social({ competitors = [] }) {
           <h1 style={{ fontSize: 22, fontWeight: 700, color: "#f8fafc", margin: 0 }}>Social Monitor</h1>
           <p style={{ color: "#94a3b8", fontSize: 13, marginTop: 4 }}>Track competitor activity on Twitter/X and Reddit</p>
         </div>
-        <button style={{ ...s.btn(), opacity: scanning ? 0.7 : 1 }} onClick={handleScanAll} disabled={scanning}>
-          {scanning ? "Scanning..." : "Scan All Now"}
+        <button style={{ ...s.btn(), opacity: scanning ? 0.7 : 1, display: 'inline-flex', alignItems: 'center', gap: 8 }} onClick={handleScanAll} disabled={scanning}>
+          {scanning ? <><Spinner size={14} color="#fff" /> Scanning...</> : "Scan All Now"}
         </button>
       </div>
+
+      {scanError && (
+        <ErrorBanner message={scanError} onDismiss={() => setScanError('')} onRetry={handleScanAll} />
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 16, marginBottom: 28 }}>
         {[
@@ -144,11 +177,11 @@ export default function Social({ competitors = [] }) {
           </div>
 
           {filteredPosts.length === 0 ? (
-            <div style={{ textAlign: "center", padding: "60px 20px", color: "#475569" }}>
-              <div style={{ fontSize: 48, marginBottom: 16 }}>📭</div>
-              <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 8 }}>No posts yet</div>
-              <p style={{ fontSize: 13 }}>Go to Configure Handles, add Twitter handles or Reddit keywords, then Scan All Now.</p>
-            </div>
+            <EmptyState
+              icon="📭"
+              title="No posts yet"
+              message="Go to Configure Handles, add Twitter handles or Reddit keywords, then Scan All Now."
+            />
           ) : filteredPosts.map(post => (
             <div key={post.id} style={s.post}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10 }}>
@@ -203,11 +236,12 @@ export default function Social({ competitors = [] }) {
                 <input style={s.input} placeholder="https://linkedin.com/company/..." value={settingsForm.linkedin_url} onChange={e => setSettingsForm(f => ({ ...f, linkedin_url: e.target.value }))} />
               </div>
               <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                <button style={{ ...s.btn(), opacity: settingsSaving ? 0.7 : 1 }} onClick={saveSettings} disabled={settingsSaving}>
+                <LoadingButton loading={settingsSaving} onClick={saveSettings}>
                   {settingsSaving ? "Saving..." : "Save Handles"}
-                </button>
-                <button style={{ ...s.btn("ghost"), opacity: scanningId === settingsTarget?.id ? 0.7 : 1 }} onClick={() => handleScanOne(settingsTarget.id)} disabled={!!scanningId}>
-                  {scanningId === settingsTarget?.id ? "Scanning..." : "Scan Now"}
+                </LoadingButton>
+                <button style={{ ...s.btn("ghost"), opacity: scanningId === settingsTarget?.id ? 0.7 : 1, display: 'inline-flex', alignItems: 'center', gap: 6 }}
+                  onClick={() => handleScanOne(settingsTarget.id)} disabled={!!scanningId}>
+                  {scanningId === settingsTarget?.id ? <><Spinner size={12} color="#94a3b8" /> Scanning...</> : "Scan Now"}
                 </button>
                 {settingsMsg && <span style={{ color: settingsMsg === "Saved!" ? "#22c55e" : "#ef4444", fontSize: 13 }}>{settingsMsg}</span>}
               </div>
